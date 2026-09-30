@@ -1,7 +1,7 @@
 import datetime as dt
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, String, Text
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -14,6 +14,9 @@ class Expense(TimestampMixin, Base):
     __table_args__ = (
         CheckConstraint("amount > 0", name="amount_positive"),
         Index("ix_expenses_card_date", "card_id", "date"),
+        UniqueConstraint("installment_plan_id", "installment_number"),
+        # One charge per recurring item per date: makes the daily job safe to re-run.
+        UniqueConstraint("recurring_id", "date"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -30,6 +33,13 @@ class Expense(TimestampMixin, Base):
     )
     is_impulse: Mapped[bool] = mapped_column(default=False)
     note: Mapped[str | None] = mapped_column(Text)
+    installment_plan_id: Mapped[int | None] = mapped_column(
+        ForeignKey("installment_plans.id", ondelete="CASCADE"), index=True
+    )
+    installment_number: Mapped[int | None]
+    recurring_id: Mapped[int | None] = mapped_column(
+        ForeignKey("recurring_charges.id", ondelete="SET NULL"), index=True
+    )
 
     card: Mapped[Card] = relationship(lazy="raise")
     category: Mapped[Category | None] = relationship(lazy="raise")

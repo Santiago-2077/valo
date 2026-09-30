@@ -68,9 +68,22 @@ def freeze_today(monkeypatch: pytest.MonkeyPatch):  # type: ignore[no-untyped-de
     import datetime as dt
 
     import app.routers.cards
+    import app.routers.incomes
+    import app.routers.insights
+    import app.routers.installments
+    import app.routers.recurring
+
+    modules = (
+        app.routers.cards,
+        app.routers.incomes,
+        app.routers.insights,
+        app.routers.installments,
+        app.routers.recurring,
+    )
 
     def _freeze(day: dt.date) -> None:
-        monkeypatch.setattr(app.routers.cards, "today", lambda: day)
+        for module in modules:
+            monkeypatch.setattr(module, "today", lambda: day)
 
     return _freeze
 

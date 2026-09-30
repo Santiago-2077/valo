@@ -1,8 +1,11 @@
 import {
+  ArrowCircleDown,
+  CalendarDots,
   CreditCard,
   GearSix,
   Plus,
   Receipt,
+  Repeat,
   SignOut,
   SquaresFour,
   Tag,
@@ -18,7 +21,10 @@ type NavItem = { to: string; label: string; icon: Icon }
 const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Resumen', icon: SquaresFour },
   { to: '/gastos', label: 'Gastos', icon: Receipt },
+  { to: '/ingresos', label: 'Ingresos', icon: ArrowCircleDown },
   { to: '/tarjetas', label: 'Tarjetas', icon: CreditCard },
+  { to: '/meses', label: 'Meses', icon: CalendarDots },
+  { to: '/fijos', label: 'Fijos', icon: Repeat },
   { to: '/categorias', label: 'Categorías', icon: Tag },
 ]
 
@@ -129,6 +135,13 @@ function Shell() {
         <header className="flex items-center justify-between border-b border-stone-200/80 px-4 py-3 md:hidden">
           <Logo />
           <div className="flex items-center">
+            <Link
+              to="/categorias"
+              className="rounded-lg p-2 text-stone-500"
+              aria-label="Categorías"
+            >
+              <Tag size={20} />
+            </Link>
             <Link to="/ajustes" className="rounded-lg p-2 text-stone-500" aria-label="Ajustes">
               <GearSix size={20} />
             </Link>
@@ -161,8 +174,8 @@ function Shell() {
               <Plus size={22} weight="bold" />
             </button>
           </div>
-          <TabLink {...NAV_ITEMS[2]} />
           <TabLink {...NAV_ITEMS[3]} />
+          <TabLink {...NAV_ITEMS[4]} />
         </nav>
       </div>
     </div>

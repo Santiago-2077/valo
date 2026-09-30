@@ -4,7 +4,7 @@ from decimal import Decimal
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Card, CardKind, Expense
+from app.models import Card, CardKind, CardPayment, Expense, StatementCheck
 from app.schemas import StatementRef
 from app.services.billing import Statement, cycle_for, statement_for
 
@@ -37,3 +37,25 @@ async def total_between(session: AsyncSession, card_id: int, start: date, end: d
         )
     )
     return Decimal(total or 0)
+
+
+async def paid_for(session: AsyncSession, card_id: int, cycle: str) -> Decimal:
+    total = await session.scalar(
+        select(func.coalesce(func.sum(CardPayment.amount), 0)).where(
+            CardPayment.card_id == card_id, CardPayment.cycle == cycle
+        )
+    )
+    return Decimal(total or 0)
+
+
+async def bank_total_for(session: AsyncSession, card_id: int, cycle: str) -> Decimal | None:
+    return await session.scalar(
+        select(StatementCheck.bank_total).where(
+            StatementCheck.card_id == card_id, StatementCheck.cycle == cycle
+        )
+    )
+
+
+def amount_owed(total: Decimal, bank_total: Decimal | None) -> Decimal:
+    """What you actually have to pay: the bank's figure once you've entered it."""
+    return bank_total if bank_total is not None else total

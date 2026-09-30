@@ -1,11 +1,29 @@
 import type { ReactNode } from 'react'
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import type { Expense } from '../lib/types'
+import { api } from '../lib/api'
+import type { Expense, Income, Plan } from '../lib/types'
 import { Dialog } from './Dialog'
 import { ExpenseForm } from './ExpenseForm'
+import { IncomeForm } from './IncomeForm'
+import { Segmented } from './ui'
 
-type State = { open: boolean; expense?: Expense; key: number }
-const Ctx = createContext<(expense?: Expense) => void>(() => {})
+type Target = Expense | Plan | Income
+type Mode = 'expense' | 'income'
+type State = {
+  open: boolean
+  mode: Mode
+  expense?: Expense
+  plan?: Plan
+  income?: Income
+  key: number
+}
+
+/** open() = new expense; open('income') = new income; open(item) = edit it. */
+type Open = (target?: Target | Mode) => void
+const Ctx = createContext<Open>(() => {})
+
+const isPlan = (t: Target): t is Plan => 'n_months' in t
+const isIncome = (t: Target): t is Income => 'recurring_income_id' in t
 
 function isTyping(target: EventTarget | null) {
   return (
@@ -14,12 +32,27 @@ function isTyping(target: EventTarget | null) {
   )
 }
 
+const TITLES: Record<string, string> = {
+  plan: 'Editar compra a meses',
+  expense: 'Editar gasto',
+  income: 'Editar ingreso',
+  new: 'Nuevo movimiento',
+}
+
 export function ExpenseDialogProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<State>({ open: false, key: 0 })
-  const open = useCallback(
-    (expense?: Expense) => setState((s) => ({ open: true, expense, key: s.key + 1 })),
-    [],
-  )
+  const [state, setState] = useState<State>({ open: false, mode: 'expense', key: 0 })
+
+  const open = useCallback<Open>(async (target) => {
+    const next: Omit<State, 'key' | 'open'> = { mode: 'expense' }
+    if (target === 'income' || target === 'expense') next.mode = target
+    else if (target && isPlan(target)) next.plan = target
+    else if (target && isIncome(target)) Object.assign(next, { mode: 'income', income: target })
+    else if (target?.installment) {
+      // An installment charge is edited through its plan.
+      next.plan = await api.get<Plan>(`/installments/${target.installment.plan_id}`)
+    } else if (target) next.expense = target
+    setState((s) => ({ ...next, open: true, key: s.key + 1 }))
+  }, [])
   const close = () => setState((s) => ({ ...s, open: false }))
 
   useEffect(() => {
@@ -33,22 +66,34 @@ export function ExpenseDialogProvider({ children }: { children: ReactNode }) {
         !document.querySelector('dialog[open]')
       ) {
         e.preventDefault()
-        open()
+        void open()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
+  const editing = state.plan ? 'plan' : state.expense ? 'expense' : state.income ? 'income' : null
+
   return (
     <Ctx.Provider value={open}>
       {children}
-      <Dialog
-        open={state.open}
-        onClose={close}
-        title={state.expense ? 'Editar gasto' : 'Nuevo gasto'}
-      >
-        <ExpenseForm key={state.key} expense={state.expense} onDone={close} />
+      <Dialog open={state.open} onClose={close} title={TITLES[editing ?? 'new']}>
+        {editing === null ? (
+          <div className="mb-5">
+            <Segmented
+              label="Tipo de movimiento"
+              value={state.mode}
+              onChange={(mode) => setState((s) => ({ ...s, mode, key: s.key + 1 }))}
+              options={{ expense: 'Gasto', income: 'Ingreso' }}
+            />
+          </div>
+        ) : null}
+        {state.mode === 'income' ? (
+          <IncomeForm key={state.key} income={state.income} onDone={close} />
+        ) : (
+          <ExpenseForm key={state.key} expense={state.expense} plan={state.plan} onDone={close} />
+        )}
       </Dialog>
     </Ctx.Provider>
   )

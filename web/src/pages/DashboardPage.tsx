@@ -1,26 +1,21 @@
 import { ArrowRight, Plus } from '@phosphor-icons/react'
+import { useMemo } from 'react'
 import { Link } from 'react-router'
+import { BudgetList } from '../components/BudgetList'
 import { useExpenseDialog } from '../components/ExpenseDialog'
 import { Button, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui'
 import { cn } from '../lib/cn'
-import {
-  dueLabel,
-  formatCycle,
-  formatDayMonth,
-  formatMoney,
-  monthRange,
-  todayISO,
-} from '../lib/format'
-import { useCards, useExpenses } from '../lib/queries'
-import type { Card, StatementRef } from '../lib/types'
+import { dueLabel, formatCycle, formatDayMonth, formatMoney, todayISO } from '../lib/format'
+import { useCards, useCategories, useMonthInsights } from '../lib/queries'
+import type { Card, StatementTotals } from '../lib/types'
 
-type Payment = { card: Card; statement: StatementRef & { total: number }; closed: boolean }
+type Payment = { card: Card; statement: StatementTotals; closed: boolean }
 
 function upcomingPayments(cards: Card[]): Payment[] {
   const payments: Payment[] = []
   for (const card of cards) {
     if (!card.active) continue
-    if (card.pending_statement && card.pending_statement.total > 0) {
+    if (card.pending_statement && card.pending_statement.remaining > 0) {
       payments.push({ card, statement: card.pending_statement, closed: true })
     }
     if (card.current_statement) {
@@ -30,16 +25,41 @@ function upcomingPayments(cards: Card[]): Payment[] {
   return payments.sort((a, b) => a.statement.due_date.localeCompare(b.statement.due_date))
 }
 
+function Stat({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string
+  value: string
+  hint?: string
+  tone?: 'bad'
+}) {
+  return (
+    <div>
+      <p className="text-sm text-stone-500">{label}</p>
+      <p className={cn('num mt-1 text-2xl font-medium', tone === 'bad' && 'text-red-700')}>
+        {value}
+      </p>
+      {hint ? <p className="mt-1 text-[13px] text-stone-500">{hint}</p> : null}
+    </div>
+  )
+}
+
 export function DashboardPage() {
   const cards = useCards()
+  const categories = useCategories()
   const month = todayISO().slice(0, 7)
-  const { from, to } = monthRange(month)
-  const monthExpenses = useExpenses({ date_from: from, date_to: to, limit: 1 })
-  const impulse = useExpenses({ date_from: from, date_to: to, is_impulse: true, limit: 1 })
-  const openExpense = useExpenseDialog()
+  const insights = useMonthInsights(month)
+  const openMovement = useExpenseDialog()
+  const categoryById = useMemo(
+    () => new Map(categories.data?.map((c) => [c.id, c])),
+    [categories.data],
+  )
 
   if (cards.error) return <ErrorState error={cards.error} onRetry={() => cards.refetch()} />
-  if (cards.isPending) {
+  if (cards.isPending || insights.isPending) {
     return (
       <div className="grid gap-6">
         <Skeleton className="h-8 w-40" />
@@ -68,95 +88,158 @@ export function DashboardPage() {
     )
   }
 
+  const m = insights.data
   const payments = upcomingPayments(cards.data)
-  const toPayNow = payments.filter((p) => p.closed).reduce((s, p) => s + p.statement.total, 0)
+  const toPayNow = payments.filter((p) => p.closed).reduce((s, p) => s + p.statement.remaining, 0)
+  const nextDue = payments.find((p) => p.closed)
   const accumulating = payments.filter((p) => !p.closed).reduce((s, p) => s + p.statement.total, 0)
-  const monthTotal = monthExpenses.data?.sum_mxn ?? 0
-  const impulseTotal = impulse.data?.sum_mxn ?? 0
+  const change =
+    m && m.previous_expenses > 0 ? (m.expenses - m.previous_expenses) / m.previous_expenses : null
+  const hasBudgets = Boolean(m?.categories.some((c) => c.budget))
 
   return (
     <>
       <PageHeader title="Resumen" description={`Así vas en ${formatCycle(month)}.`} />
 
-      <section className="mb-12 grid gap-8 md:grid-cols-[1.4fr_1fr_1fr]">
+      <section className="mb-12 grid gap-10 md:grid-cols-[1.3fr_1fr]">
         <div>
-          <p className="text-sm text-stone-500">Por pagar ahora</p>
-          <p className="num mt-1 text-5xl font-medium tracking-tight">{formatMoney(toPayNow)}</p>
+          <p className="text-sm text-stone-500">
+            {m && m.balance < 0 ? 'Gastaste más de lo que entró' : 'Te sobra este mes'}
+          </p>
+          <p
+            className={cn(
+              'num mt-1 text-5xl font-medium tracking-tight',
+              m && m.balance < 0 && 'text-red-700',
+            )}
+          >
+            {formatMoney(Math.abs(m?.balance ?? 0))}
+          </p>
           <p className="mt-2 text-sm text-stone-500">
-            Cortes cerrados · {formatMoney(accumulating)} acumulando en los abiertos
+            Entró <span className="num text-stone-800">{formatMoney(m?.income ?? 0)}</span> · salió{' '}
+            <span className="num text-stone-800">{formatMoney(m?.expenses ?? 0)}</span>
           </p>
+          {m && m.income === 0 ? (
+            <Link
+              to="/ingresos"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-stone-900 underline-offset-2 hover:underline"
+            >
+              Cargá tus ingresos para ver cuánto te sobra <ArrowRight size={14} />
+            </Link>
+          ) : null}
         </div>
-        <div className="border-t border-stone-200 pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-8">
-          <p className="text-sm text-stone-500">Gastado este mes</p>
-          <p className="num mt-1 text-2xl font-medium">{formatMoney(monthTotal)}</p>
-          <p className="mt-1 text-[13px] text-stone-500">
-            {monthExpenses.data?.total ?? 0} movimientos, todos los medios
-          </p>
-        </div>
-        <div className="border-t border-stone-200 pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-8">
-          <p className="text-sm text-stone-500">Impulsivo este mes</p>
-          <p className="num mt-1 text-2xl font-medium text-amber-700">
-            {formatMoney(impulseTotal)}
-          </p>
-          <p className="mt-1 text-[13px] text-stone-500">
-            {monthTotal > 0
-              ? `${Math.round((impulseTotal / monthTotal) * 100)}% de lo gastado`
-              : 'Nada todavía'}
+        <div className="border-t border-stone-200 pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-10">
+          <p className="text-sm text-stone-500">Por pagar ahora</p>
+          <p className="num mt-1 text-4xl font-medium tracking-tight">{formatMoney(toPayNow)}</p>
+          <p className="mt-2 text-sm text-stone-500">
+            {nextDue
+              ? `${nextDue.card.name} vence ${formatDayMonth(nextDue.statement.due_date)} (${dueLabel(nextDue.statement.due_date)})`
+              : 'Nada vencido pendiente'}
+            {' · '}
+            <span className="num">{formatMoney(accumulating)}</span> acumulando
           </p>
         </div>
       </section>
 
-      <section>
-        <header className="mb-3 flex items-baseline justify-between">
-          <h2 className="font-medium">Próximos pagos</h2>
-          <Link to="/tarjetas" className="text-sm text-stone-500 hover:text-stone-900">
-            Ver tarjetas
-          </Link>
-        </header>
-        {payments.length === 0 ? (
-          <p className="text-sm text-stone-500">No tenés tarjetas de crédito activas.</p>
-        ) : (
-          <ul className="divide-y divide-stone-200 border-y border-stone-200">
-            {payments.map(({ card, statement: st, closed }) => (
-              <li key={`${card.id}-${st.cycle}`}>
-                <Link
-                  to={`/tarjetas/${card.id}?corte=${st.cycle}`}
-                  className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-2 py-3.5 transition-colors hover:bg-stone-100"
-                >
-                  <span
-                    className="h-8 w-1.5 rounded-full"
-                    style={{ backgroundColor: card.color }}
-                  />
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-2 truncate text-[15px]">
-                      {card.name}
-                      <span
-                        className={cn(
-                          'rounded-full px-2 py-0.5 text-[11px] font-medium',
-                          closed ? 'bg-amber-100 text-amber-800' : 'bg-stone-200/70 text-stone-600',
-                        )}
-                      >
-                        {closed ? 'Por pagar' : 'Acumulando'}
-                      </span>
-                    </p>
-                    <p className="text-[13px] text-stone-500">
-                      {closed
-                        ? `Cortó ${formatDayMonth(st.closing_date)}`
-                        : `Corta ${formatDayMonth(st.closing_date)}`}{' '}
-                      · paga {formatDayMonth(st.due_date)} ({dueLabel(st.due_date)})
-                    </p>
-                  </div>
-                  <span className="num text-[15px] font-medium">{formatMoney(st.total)}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+      <section className="mb-12 grid grid-cols-2 gap-x-6 gap-y-8 border-y border-stone-200 py-8 md:grid-cols-4">
+        <Stat
+          label="Impulsivo"
+          value={formatMoney(m?.impulse ?? 0)}
+          hint={
+            m && m.expenses > 0
+              ? `${Math.round((m.impulse / m.expenses) * 100)}% de lo gastado`
+              : 'Nada todavía'
+          }
+          tone={m && m.expenses > 0 && m.impulse / m.expenses > 0.25 ? 'bad' : undefined}
+        />
+        <Stat
+          label="Fijos"
+          value={formatMoney(m?.fixed_monthly_cost ?? 0)}
+          hint="Suscripciones y servicios al mes"
+        />
+        <Stat
+          label="Cuotas este mes"
+          value={formatMoney(m?.installments ?? 0)}
+          hint="Compras a meses"
+        />
+        <Stat
+          label="Vs. mes pasado"
+          value={change === null ? '—' : `${change > 0 ? '+' : ''}${Math.round(change * 100)}%`}
+          hint={m ? `Mes pasado: ${formatMoney(m.previous_expenses)}` : undefined}
+        />
       </section>
+
+      <div className="grid gap-12 md:grid-cols-[1fr_1.2fr]">
+        <section>
+          <header className="mb-4 flex items-baseline justify-between">
+            <h2 className="font-medium">Presupuestos</h2>
+            <Link to="/categorias" className="text-sm text-stone-500 hover:text-stone-900">
+              {hasBudgets ? 'Ver todos' : 'Definir topes'}
+            </Link>
+          </header>
+          {hasBudgets && m ? (
+            <BudgetList rows={m.categories} categories={categoryById} limit={5} />
+          ) : (
+            <p className="text-sm text-stone-500">
+              Ponele un tope mensual a las categorías donde más se te va (comida, salidas) y acá ves
+              cuánto te queda.
+            </p>
+          )}
+        </section>
+
+        <section>
+          <header className="mb-3 flex items-baseline justify-between">
+            <h2 className="font-medium">Próximos pagos</h2>
+            <Link to="/tarjetas" className="text-sm text-stone-500 hover:text-stone-900">
+              Ver tarjetas
+            </Link>
+          </header>
+          {payments.length === 0 ? (
+            <p className="text-sm text-stone-500">No tenés tarjetas de crédito activas.</p>
+          ) : (
+            <ul className="divide-y divide-stone-200 border-y border-stone-200">
+              {payments.map(({ card, statement: st, closed }) => (
+                <li key={`${card.id}-${st.cycle}`}>
+                  <Link
+                    to={`/tarjetas/${card.id}?corte=${st.cycle}`}
+                    className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-2 py-3.5 transition-colors hover:bg-stone-100"
+                  >
+                    <span
+                      className="h-8 w-1.5 rounded-full"
+                      style={{ backgroundColor: card.color }}
+                    />
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-2 truncate text-[15px]">
+                        {card.name}
+                        <span
+                          className={cn(
+                            'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                            closed
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-stone-200/70 text-stone-600',
+                          )}
+                        >
+                          {closed ? 'Por pagar' : 'Acumulando'}
+                        </span>
+                      </p>
+                      <p className="text-[13px] text-stone-500">
+                        Paga {formatDayMonth(st.due_date)} ({dueLabel(st.due_date)})
+                        {closed && st.paid > 0 ? ` · pagaste ${formatMoney(st.paid)}` : ''}
+                      </p>
+                    </div>
+                    <span className="num text-[15px] font-medium">
+                      {formatMoney(closed ? st.remaining : st.total)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
 
       <div className="mt-10 md:hidden">
-        <Button variant="secondary" className="w-full" onClick={() => openExpense()}>
-          <Plus size={16} weight="bold" /> Anotar gasto
+        <Button variant="secondary" className="w-full" onClick={() => openMovement()}>
+          <Plus size={16} weight="bold" /> Anotar movimiento
         </Button>
       </div>
     </>

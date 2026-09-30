@@ -4,14 +4,23 @@ from typing import Annotated, Literal, Self
 
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field, model_validator
-from sqlalchemy import exists, select
+from sqlalchemy import delete, exists, select
 
 from app.clock import today
 from app.deps import CurrentUser, SessionDep
-from app.models import Card, CardKind, Expense
-from app.schemas import HexColor, Money, MoneyIn, ORMModel, StatementRef
+from app.models import Card, CardKind, CardPayment, Expense, StatementCheck
+from app.schemas import HexColor, InstallmentRef, Money, MoneyIn, ORMModel, StatementRef
 from app.services.billing import Statement, parse_cycle
-from app.services.cards import card_cycle, card_statement_for, to_ref, total_between
+from app.services.cards import (
+    amount_owed,
+    bank_total_for,
+    card_cycle,
+    card_statement_for,
+    paid_for,
+    to_ref,
+    total_between,
+)
+from app.services.installments import installment_refs
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
@@ -41,6 +50,8 @@ class CardIn(BaseModel):
 
 class CurrentStatement(StatementRef):
     total: Money
+    paid: Money
+    remaining: Money
 
 
 class CardOut(ORMModel):
@@ -68,12 +79,42 @@ class StatementExpense(ORMModel):
     amount_mxn: Money
     category_id: int | None
     is_impulse: bool
+    recurring_id: int | None = None
+    installment: InstallmentRef | None = None
+
+
+class PaymentIn(BaseModel):
+    date: date
+    amount: MoneyIn
+    # Statement being paid; defaults to the one currently due (or the open one).
+    cycle: Annotated[str | None, Field(pattern=r"^\d{4}-(0[1-9]|1[0-2])$")] = None
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class PaymentOut(ORMModel):
+    id: int
+    card_id: int
+    cycle: str
+    date: date
+    amount: Money
+    note: str | None
+
+
+class CheckIn(BaseModel):
+    bank_total: Annotated[Decimal, Field(ge=0, max_digits=12, decimal_places=2)]
 
 
 class StatementDetail(StatementRef):
     card_id: int
     status: Literal["open", "closed", "past_due_date"]
     total: Money
+    paid: Money
+    remaining: Money  # owed (bank total if reconciled, else logged total) minus paid
+    settled: bool  # paid in full
+    # Reconciliation: bank_total - total. Positive = the bank shows charges you didn't log.
+    bank_total: Money | None
+    difference: Money | None
+    payments: list[PaymentOut]
     impulse_total: Money
     previous_cycle: str
     next_cycle: str
@@ -89,7 +130,14 @@ async def _get_card(session: SessionDep, card_id: int) -> Card:
 
 async def _with_total(session: SessionDep, card: Card, statement: Statement) -> CurrentStatement:
     total = await total_between(session, card.id, statement.period_start, statement.closing_date)
-    return CurrentStatement(**to_ref(statement).model_dump(), total=total)
+    paid = await paid_for(session, card.id, statement.cycle)
+    owed = amount_owed(total, await bank_total_for(session, card.id, statement.cycle))
+    return CurrentStatement(
+        **to_ref(statement).model_dump(),
+        total=total,
+        paid=paid,
+        remaining=max(owed - paid, Decimal(0)),
+    )
 
 
 async def _to_out(session: SessionDep, card: Card) -> CardOut:
@@ -101,7 +149,9 @@ async def _to_out(session: SessionDep, card: Card) -> CardOut:
     out.current_statement = await _with_total(session, card, statement)
     previous = statement.previous(card.closing_day, card.due_day)
     if now <= previous.due_date:
-        out.pending_statement = await _with_total(session, card, previous)
+        pending = await _with_total(session, card, previous)
+        # Once it's fully paid there's nothing pending anymore.
+        out.pending_statement = pending if pending.remaining > 0 or pending.total == 0 else None
     return out
 
 
@@ -140,6 +190,9 @@ async def delete_card(card_id: int, session: SessionDep, _: CurrentUser) -> None
         raise HTTPException(
             status.HTTP_409_CONFLICT, "La tarjeta tiene gastos; desactivala en lugar de borrarla"
         )
+    # Explicit instead of relying on ON DELETE CASCADE, so it also holds on SQLite.
+    await session.execute(delete(CardPayment).where(CardPayment.card_id == card_id))
+    await session.execute(delete(StatementCheck).where(StatementCheck.card_id == card_id))
     await session.delete(card)
     await session.commit()
 
@@ -176,6 +229,7 @@ async def get_statement(
             .order_by(Expense.date.desc(), Expense.id.desc())
         )
     )
+    refs = await installment_refs(session, rows)
     now = today()
     state: Literal["open", "closed", "past_due_date"] = (
         "open"
@@ -184,13 +238,125 @@ async def get_statement(
         if now <= statement.due_date
         else "past_due_date"
     )
+    total = sum((e.amount_mxn for e in rows), Decimal(0))
+    payments = list(
+        await session.scalars(
+            select(CardPayment)
+            .where(CardPayment.card_id == card.id, CardPayment.cycle == statement.cycle)
+            .order_by(CardPayment.date)
+        )
+    )
+    paid = sum((p.amount for p in payments), Decimal(0))
+    bank_total = await bank_total_for(session, card.id, statement.cycle)
     return StatementDetail(
         **to_ref(statement).model_dump(),
         card_id=card.id,
         status=state,
-        total=sum((e.amount_mxn for e in rows), Decimal(0)),
+        total=total,
+        paid=paid,
+        remaining=max(amount_owed(total, bank_total) - paid, Decimal(0)),
+        settled=amount_owed(total, bank_total) > 0 and paid >= amount_owed(total, bank_total),
+        bank_total=bank_total,
+        difference=bank_total - total if bank_total is not None else None,
+        payments=[PaymentOut.model_validate(p) for p in payments],
         impulse_total=sum((e.amount_mxn for e in rows if e.is_impulse), Decimal(0)),
         previous_cycle=statement.previous(card.closing_day, card.due_day).cycle,
         next_cycle=statement.next(card.closing_day, card.due_day).cycle,
-        expenses=[StatementExpense.model_validate(e) for e in rows],
+        expenses=[
+            StatementExpense.model_validate(e).model_copy(update={"installment": refs.get(e.id)})
+            for e in rows
+        ],
     )
+
+
+async def _credit(session: SessionDep, card_id: int) -> Card:
+    card = await _get_card(session, card_id)
+    if card.kind != CardKind.CREDIT or card.closing_day is None or card.due_day is None:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Solo las tarjetas de crédito tienen corte"
+        )
+    return card
+
+
+def _valid_cycle(cycle: str) -> str:
+    try:
+        parse_cycle(cycle)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+    return cycle
+
+
+@router.get("/{card_id}/payments", response_model=list[PaymentOut])
+async def list_payments(card_id: int, session: SessionDep, _: CurrentUser) -> list[CardPayment]:
+    await _get_card(session, card_id)
+    return list(
+        await session.scalars(
+            select(CardPayment)
+            .where(CardPayment.card_id == card_id)
+            .order_by(CardPayment.date.desc(), CardPayment.id.desc())
+        )
+    )
+
+
+@router.post("/{card_id}/payments", response_model=PaymentOut, status_code=status.HTTP_201_CREATED)
+async def create_payment(
+    card_id: int, data: PaymentIn, session: SessionDep, _: CurrentUser
+) -> CardPayment:
+    """Record a payment toward a statement. It's a transfer, not an expense."""
+    card = await _credit(session, card_id)
+    cycle = data.cycle
+    if cycle is None:
+        out = await _to_out(session, card)
+        target = out.pending_statement or out.current_statement
+        assert target is not None
+        cycle = target.cycle
+    payment = CardPayment(
+        card_id=card.id,
+        cycle=_valid_cycle(cycle),
+        date=data.date,
+        amount=data.amount,
+        note=data.note,
+    )
+    session.add(payment)
+    await session.commit()
+    return payment
+
+
+@router.delete("/{card_id}/payments/{payment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_payment(
+    card_id: int, payment_id: int, session: SessionDep, _: CurrentUser
+) -> None:
+    payment = await session.get(CardPayment, payment_id)
+    if payment is None or payment.card_id != card_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Pago no encontrado")
+    await session.delete(payment)
+    await session.commit()
+
+
+@router.put("/{card_id}/statement/{cycle}/check", status_code=status.HTTP_204_NO_CONTENT)
+async def set_check(
+    card_id: int, cycle: str, data: CheckIn, session: SessionDep, _: CurrentUser
+) -> None:
+    """Store the total printed on the bank statement for this cycle."""
+    await _credit(session, card_id)
+    _valid_cycle(cycle)
+    check = await session.scalar(
+        select(StatementCheck).where(
+            StatementCheck.card_id == card_id, StatementCheck.cycle == cycle
+        )
+    )
+    if check is None:
+        session.add(StatementCheck(card_id=card_id, cycle=cycle, bank_total=data.bank_total))
+    else:
+        check.bank_total = data.bank_total
+    await session.commit()
+
+
+@router.delete("/{card_id}/statement/{cycle}/check", status_code=status.HTTP_204_NO_CONTENT)
+async def clear_check(card_id: int, cycle: str, session: SessionDep, _: CurrentUser) -> None:
+    await session.execute(
+        delete(StatementCheck).where(
+            StatementCheck.card_id == card_id, StatementCheck.cycle == cycle
+        )
+    )
+    await session.commit()

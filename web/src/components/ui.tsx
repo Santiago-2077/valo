@@ -152,11 +152,13 @@ export function Toggle({
   onChange,
   label,
   description,
+  tone = 'warning',
 }: {
   checked: boolean
   onChange: (v: boolean) => void
   label: string
   description?: string
+  tone?: 'warning' | 'neutral'
 }) {
   const id = useId()
   return (
@@ -175,7 +177,7 @@ export function Toggle({
         onClick={() => onChange(!checked)}
         className={cn(
           'relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200',
-          checked ? 'bg-amber-600' : 'bg-stone-300',
+          checked ? (tone === 'warning' ? 'bg-amber-600' : 'bg-stone-900') : 'bg-stone-300',
         )}
       >
         <span
@@ -217,5 +219,43 @@ export function ErrorState({ error, onRetry }: { error: Error; onRetry?: () => v
         </button>
       ) : null}
     </div>
+  )
+}
+
+export function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+  label,
+}: {
+  value: T
+  onChange: (v: T) => void
+  options: Record<T, string>
+  label: string
+}) {
+  const keys = Object.keys(options) as T[]
+  return (
+    <fieldset>
+      <legend className="mb-2 text-sm font-medium text-stone-700">{label}</legend>
+      <div
+        className="grid gap-1 rounded-xl bg-stone-200/60 p-1"
+        style={{ gridTemplateColumns: `repeat(${keys.length}, minmax(0, 1fr))` }}
+      >
+        {keys.map((k) => (
+          <button
+            key={k}
+            type="button"
+            aria-pressed={value === k}
+            onClick={() => onChange(k)}
+            className={cn(
+              'h-9 rounded-lg text-sm transition-colors',
+              value === k ? 'bg-white font-medium text-stone-900 shadow-sm' : 'text-stone-600',
+            )}
+          >
+            {options[k]}
+          </button>
+        ))}
+      </div>
+    </fieldset>
   )
 }

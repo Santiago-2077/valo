@@ -1,11 +1,17 @@
-import { Lightning } from '@phosphor-icons/react'
+import { Lightning, Repeat } from '@phosphor-icons/react'
 import { formatDayMonth, formatMoney } from '../lib/format'
 import type { Card, Category, Expense } from '../lib/types'
 import { CategoryIcon } from './CategoryIcon'
 
 type RowExpense = Pick<
   Expense,
-  'id' | 'description' | 'amount_mxn' | 'category_id' | 'is_impulse'
+  | 'id'
+  | 'description'
+  | 'amount_mxn'
+  | 'category_id'
+  | 'is_impulse'
+  | 'installment'
+  | 'recurring_id'
 > &
   Partial<Pick<Expense, 'card_id' | 'date'>>
 
@@ -37,7 +43,17 @@ export function ExpenseRow({
       >
         <CategoryIcon icon={category?.icon} color={category?.color} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] text-stone-900">{expense.description}</p>
+          <p className="flex items-center gap-2 text-[15px] text-stone-900">
+            <span className="truncate">{expense.description}</span>
+            {expense.recurring_id ? (
+              <Repeat size={13} className="shrink-0 text-stone-400" aria-label="Fijo" />
+            ) : null}
+            {expense.installment ? (
+              <span className="num shrink-0 rounded-md bg-stone-200/70 px-1.5 py-px text-[11px] text-stone-600">
+                {expense.installment.number}/{expense.installment.of}
+              </span>
+            ) : null}
+          </p>
           <p className="flex items-center gap-1.5 truncate text-[13px] text-stone-500">
             {card ? (
               <>

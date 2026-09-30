@@ -33,9 +33,9 @@ export function CardTile({ card }: { card: Card }) {
 
       {st ? (
         <div className="relative mt-6">
-          {pending && pending.total > 0 ? (
+          {pending && pending.remaining > 0 ? (
             <p className="mb-3 inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[12px]">
-              Por pagar {formatMoney(pending.total)} · {dueLabel(pending.due_date)}
+              Por pagar {formatMoney(pending.remaining)} · {dueLabel(pending.due_date)}
             </p>
           ) : null}
           <p className="text-[12px] tracking-wide text-white/60 uppercase">Este corte</p>

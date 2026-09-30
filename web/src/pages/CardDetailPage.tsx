@@ -5,6 +5,7 @@ import { CardForm } from '../components/CardForm'
 import { Dialog } from '../components/Dialog'
 import { useExpenseDialog } from '../components/ExpenseDialog'
 import { ExpenseRow } from '../components/ExpenseRow'
+import { StatementMoney } from '../components/StatementMoney'
 import { useToast } from '../components/Toast'
 import { Button, EmptyState, ErrorState, Skeleton } from '../components/ui'
 import { api } from '../lib/api'
@@ -18,12 +19,13 @@ import {
   todayISO,
 } from '../lib/format'
 import { useCards, useCategories, useDeleteCard, useExpenses, useStatement } from '../lib/queries'
-import type { Card, Expense } from '../lib/types'
+import type { Card, Expense, Plan } from '../lib/types'
 
 const STATUS = {
   open: { label: 'Abierto', className: 'bg-accent-100 text-accent-700' },
   closed: { label: 'Cerrado · por pagar', className: 'bg-amber-100 text-amber-800' },
   past_due_date: { label: 'Fecha de pago pasada', className: 'bg-stone-200 text-stone-600' },
+  settled: { label: 'Pagado', className: 'bg-accent-100 text-accent-700' },
 } as const
 
 function useCategoryMap() {
@@ -78,10 +80,10 @@ function CreditStatement({ card }: { card: Card }) {
           <span
             className={cn(
               'mt-3 inline-flex rounded-full px-2.5 py-1 text-xs font-medium',
-              STATUS[st.status].className,
+              STATUS[st.settled ? 'settled' : st.status].className,
             )}
           >
-            {STATUS[st.status].label}
+            {STATUS[st.settled ? 'settled' : st.status].label}
           </span>
         </div>
         <dl className="grid content-start gap-3 text-sm">
@@ -121,6 +123,8 @@ function CreditStatement({ card }: { card: Card }) {
         </dl>
       </section>
 
+      {st.status !== 'open' || st.payments.length > 0 ? <StatementMoney st={st} /> : null}
+
       {st.expenses.length === 0 ? (
         <EmptyState
           title="Sin gastos en este corte"
@@ -134,7 +138,13 @@ function CreditStatement({ card }: { card: Card }) {
               expense={e}
               showDate
               category={e.category_id ? categoryById.get(e.category_id) : undefined}
-              onClick={async () => openExpense(await api.get<Expense>(`/expenses/${e.id}`))}
+              onClick={async () =>
+                openExpense(
+                  e.installment
+                    ? await api.get<Plan>(`/installments/${e.installment.plan_id}`)
+                    : await api.get<Expense>(`/expenses/${e.id}`),
+                )
+              }
             />
           ))}
         </ul>

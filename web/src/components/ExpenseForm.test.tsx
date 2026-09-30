@@ -25,6 +25,7 @@ const CARDS = [
   card({}),
   card({ id: 2, name: 'Nu', last4: '0193' }),
   card({ id: 3, name: 'Vieja', active: false }),
+  card({ id: 4, name: 'Efectivo', kind: 'cash', last4: null, closing_day: null, due_day: null }),
 ]
 const CATEGORIES: Category[] = [
   { id: 7, name: 'Comida', icon: 'fork-knife', color: '#c2410c', monthly_budget: null },
@@ -35,6 +36,19 @@ function setup() {
   mockFetch((url, init) => {
     if (url.endsWith('/cards')) return [200, CARDS]
     if (url.endsWith('/categories')) return [200, CATEGORIES]
+    if (url.endsWith('/installments') && init?.method === 'POST') {
+      const body = JSON.parse(String(init.body))
+      posted.push({ url: '/installments', ...body })
+      return [
+        201,
+        {
+          ...body,
+          id: 5,
+          monthly_amount: 1000,
+          charges: [{ number: 1, due_date: '2026-10-10' }],
+        },
+      ]
+    }
     if (url.endsWith('/expenses') && init?.method === 'POST') {
       const body = JSON.parse(String(init.body))
       posted.push(body)
@@ -92,5 +106,29 @@ describe('ExpenseForm', () => {
       note: null,
     })
     expect(localStorage.getItem('valo:last-card')).toBe('2')
+  })
+
+  it('offers installments only for credit cards and posts a plan', async () => {
+    const { posted, onDone } = setup()
+    await userEvent.click(await screen.findByRole('button', { name: /Efectivo/ }))
+    expect(screen.queryByRole('switch', { name: 'Compra a meses' })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /Oro/ }))
+    await userEvent.click(screen.getByRole('switch', { name: 'Compra a meses' }))
+    await userEvent.type(screen.getByLabelText('Monto total de la compra'), '6000')
+    await userEvent.type(screen.getByLabelText('Descripción'), 'Pantalla')
+    await userEvent.click(screen.getByRole('button', { name: '6' }))
+    expect(screen.getByText(/6 × \$1,000\.00/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar compra a meses' }))
+
+    await waitFor(() => expect(onDone).toHaveBeenCalled())
+    expect(posted[0]).toMatchObject({
+      url: '/installments',
+      total: '6000',
+      n_months: 6,
+      interest_free: true,
+      card_id: 1,
+      description: 'Pantalla',
+    })
   })
 })

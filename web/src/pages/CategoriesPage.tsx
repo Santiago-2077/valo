@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { BudgetList } from '../components/BudgetList'
 import { CategoryIcon } from '../components/CategoryIcon'
 import { CATEGORY_ICONS } from '../lib/categoryIcons'
 import { Dialog } from '../components/Dialog'
@@ -10,7 +11,7 @@ import { useToast } from '../components/Toast'
 import { Button, EmptyState, ErrorState, Field, PageHeader, Skeleton } from '../components/ui'
 import { cn } from '../lib/cn'
 import { formatMoney } from '../lib/format'
-import { useCategories, useDeleteCategory, useSaveCategory } from '../lib/queries'
+import { useCategories, useDeleteCategory, useMonthInsights, useSaveCategory } from '../lib/queries'
 import type { Category } from '../lib/types'
 
 const COLORS = [
@@ -160,7 +161,13 @@ function CategoryForm({ category, onDone }: { category?: Category; onDone: () =>
 
 export function CategoriesPage() {
   const categories = useCategories()
+  const insights = useMonthInsights()
   const [editing, setEditing] = useState<{ category?: Category } | null>(null)
+  const categoryById = useMemo(
+    () => new Map(categories.data?.map((c) => [c.id, c])),
+    [categories.data],
+  )
+  const hasBudgets = Boolean(insights.data?.categories.some((c) => c.budget))
 
   return (
     <>
@@ -180,23 +187,37 @@ export function CategoriesPage() {
       ) : categories.data.length === 0 ? (
         <EmptyState title="Sin categorías" description="Creá la primera para ordenar tus gastos." />
       ) : (
-        <ul className="divide-y divide-stone-200 border-y border-stone-200">
-          {categories.data.map((c) => (
-            <li key={c.id}>
-              <button
-                type="button"
-                onClick={() => setEditing({ category: c })}
-                className="flex w-full items-center gap-3 px-2 py-3 text-left transition-colors hover:bg-stone-100"
-              >
-                <CategoryIcon icon={c.icon} color={c.color} />
-                <span className="flex-1 text-[15px]">{c.name}</span>
-                <span className="num text-sm text-stone-500">
-                  {c.monthly_budget ? `${formatMoney(c.monthly_budget)} / mes` : 'Sin tope'}
+        <>
+          {hasBudgets && insights.data ? (
+            <section className="mb-10">
+              <h2 className="mb-4 font-medium">
+                Este mes{' '}
+                <span className="num text-sm font-normal text-stone-500">
+                  · {formatMoney(insights.data.budget_spent)} de{' '}
+                  {formatMoney(insights.data.budget_total)} presupuestados
                 </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+              </h2>
+              <BudgetList rows={insights.data.categories} categories={categoryById} />
+            </section>
+          ) : null}
+          <ul className="divide-y divide-stone-200 border-y border-stone-200">
+            {categories.data.map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  onClick={() => setEditing({ category: c })}
+                  className="flex w-full items-center gap-3 px-2 py-3 text-left transition-colors hover:bg-stone-100"
+                >
+                  <CategoryIcon icon={c.icon} color={c.color} />
+                  <span className="flex-1 text-[15px]">{c.name}</span>
+                  <span className="num text-sm text-stone-500">
+                    {c.monthly_budget ? `${formatMoney(c.monthly_budget)} / mes` : 'Sin tope'}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
       <Dialog
         open={editing !== null}

@@ -14,6 +14,7 @@ dependencies = [
     "pyjwt>=2.10",
     "httpx>=0.28",
     "tzdata>=2024.2",
+    "apscheduler>=3.10,<4",
 ]
 
 [dependency-groups]
@@ -44,6 +45,10 @@ select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC"]
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["apscheduler.*"]
+ignore_missing_imports = true
 
 [build-system]
 requires = ["hatchling"]

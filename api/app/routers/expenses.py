@@ -8,8 +8,9 @@ from sqlalchemy import func, select
 
 from app.deps import CurrentUser, SessionDep
 from app.models import Card, Category, Expense
-from app.schemas import Money, MoneyIn, ORMModel, StatementRef
+from app.schemas import InstallmentRef, Money, MoneyIn, ORMModel, StatementRef
 from app.services.cards import card_statement_for, to_ref
+from app.services.installments import installment_refs
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
@@ -37,7 +38,9 @@ class ExpenseOut(ORMModel):
     category_id: int | None
     is_impulse: bool
     note: str | None
+    recurring_id: int | None = None
     statement: StatementRef | None = None
+    installment: InstallmentRef | None = None
 
 
 class ExpensePage(BaseModel):
@@ -51,6 +54,7 @@ async def _to_out(session: SessionDep, expense: Expense) -> ExpenseOut:
     card = await session.get(Card, expense.card_id)
     statement = card_statement_for(card, expense.date) if card else None
     out.statement = to_ref(statement) if statement else None
+    out.installment = (await installment_refs(session, [expense])).get(expense.id)
     return out
 
 
@@ -76,6 +80,13 @@ async def _get(session: SessionDep, expense_id: int) -> Expense:
     if expense is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Gasto no encontrado")
     return expense
+
+
+def _ensure_standalone(expense: Expense) -> None:
+    if expense.installment_plan_id is not None:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Es una cuota de una compra a meses; editá el plan"
+        )
 
 
 @router.get("", response_model=ExpensePage)
@@ -117,12 +128,15 @@ async def list_expenses(
     rows = await session.scalars(
         query.order_by(Expense.date.desc(), Expense.id.desc()).limit(limit).offset(offset)
     )
+    expenses = list(rows)
     cards = {c.id: c for c in await session.scalars(select(Card))}
+    refs = await installment_refs(session, expenses)
     items = []
-    for e in rows:
+    for e in expenses:
         out = ExpenseOut.model_validate(e)
         statement = card_statement_for(cards[e.card_id], e.date)
         out.statement = to_ref(statement) if statement else None
+        out.installment = refs.get(e.id)
         items.append(out)
     return ExpensePage(items=items, total=count, sum_mxn=Decimal(total))
 
@@ -147,6 +161,7 @@ async def update_expense(
     expense_id: int, data: ExpenseIn, session: SessionDep, _: CurrentUser
 ) -> ExpenseOut:
     expense = await _get(session, expense_id)
+    _ensure_standalone(expense)
     # Editing an old expense on a since-deactivated card is fine; moving to one is not.
     await _validate_refs(session, data, allow_inactive=expense.card_id)
     _apply(expense, data)
@@ -156,5 +171,7 @@ async def update_expense(
 
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_expense(expense_id: int, session: SessionDep, _: CurrentUser) -> None:
-    await session.delete(await _get(session, expense_id))
+    expense = await _get(session, expense_id)
+    _ensure_standalone(expense)
+    await session.delete(expense)
     await session.commit()

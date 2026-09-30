@@ -60,3 +60,8 @@ export function dueLabel(dueISO: string, from = new Date()): string {
   if (days === 1) return 'mañana'
   return `en ${days} días`
 }
+
+/** Same split as the API: truncate to cents; the last installment absorbs the remainder. */
+export function monthlyPreview(total: number, n: number): number {
+  return Math.floor(Math.round(total * 100) / n) / 100
+}

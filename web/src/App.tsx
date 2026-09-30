@@ -9,6 +9,9 @@ import { CardsPage } from './pages/CardsPage'
 import { CategoriesPage } from './pages/CategoriesPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { ExpensesPage } from './pages/ExpensesPage'
+import { IncomesPage } from './pages/IncomesPage'
+import { InstallmentsPage } from './pages/InstallmentsPage'
+import { RecurringPage } from './pages/RecurringPage'
 import { LoginPage } from './pages/LoginPage'
 import { SettingsPage } from './pages/SettingsPage'
 
@@ -35,8 +38,11 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'gastos', element: <ExpensesPage /> },
+          { path: 'ingresos', element: <IncomesPage /> },
           { path: 'tarjetas', element: <CardsPage /> },
           { path: 'tarjetas/:id', element: <CardDetailPage /> },
+          { path: 'meses', element: <InstallmentsPage /> },
+          { path: 'fijos', element: <RecurringPage /> },
           { path: 'categorias', element: <CategoriesPage /> },
           { path: 'ajustes', element: <SettingsPage /> },
         ],

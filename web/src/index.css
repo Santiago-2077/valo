@@ -15,6 +15,9 @@
   --color-accent-600: oklch(0.54 0.1 165);
   --color-accent-700: oklch(0.46 0.085 165);
 
+  /* Data marks: validated for chroma + 3:1 contrast on stone-50 (dataviz validator). */
+  --color-chart-1: #1a9270;
+
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 

@@ -18,6 +18,7 @@ class Settings(BaseSettings):
 
     base_currency: str = "MXN"
     timezone: str = "America/Mexico_City"
+    scheduler_enabled: bool = True
 
 
 @lru_cache

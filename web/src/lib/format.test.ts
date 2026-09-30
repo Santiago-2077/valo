@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { daysUntil, formatCycle, monthRange, parseISODate, shiftMonth } from './format'
+import {
+  daysUntil,
+  formatCycle,
+  monthlyPreview,
+  monthRange,
+  parseISODate,
+  shiftMonth,
+} from './format'
 
 describe('format', () => {
   it('parses ISO dates as local dates', () => {
@@ -23,5 +30,12 @@ describe('format', () => {
 
   it('formats cycles in Spanish', () => {
     expect(formatCycle('2026-10')).toBe('octubre de 2026')
+  })
+
+  it('previews installments like the API splits them', () => {
+    expect(monthlyPreview(1000, 3)).toBe(333.33)
+    expect(monthlyPreview(18000, 12)).toBe(1500)
+    // 0.29 * 100 = 28.999999999999996 in floats; integer cents avoid the off-by-one
+    expect(monthlyPreview(0.29, 1)).toBe(0.29)
   })
 })
