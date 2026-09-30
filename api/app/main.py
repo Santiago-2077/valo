@@ -3,10 +3,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 
-from app.bootstrap import ensure_admin
+from app.bootstrap import ensure_admin, ensure_default_categories
 from app.config import get_settings
 from app.db import SessionLocal
-from app.routers import auth
+from app.routers import auth, cards, categories, expenses
 
 
 @asynccontextmanager
@@ -15,11 +15,15 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         raise RuntimeError("VALO_SECRET_KEY must be set to a random string of 32+ chars")
     async with SessionLocal() as session:
         await ensure_admin(session)
+        await ensure_default_categories(session)
     yield
 
 
 api = APIRouter(prefix="/api")
 api.include_router(auth.router)
+api.include_router(cards.router)
+api.include_router(categories.router)
+api.include_router(expenses.router)
 
 
 @api.get("/health", tags=["meta"])

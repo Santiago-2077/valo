@@ -1,0 +1,36 @@
+import {
+  Car,
+  FilmStrip,
+  ForkKnife,
+  GraduationCap,
+  Heartbeat,
+  House,
+  Lightning,
+  PawPrint,
+  Repeat,
+  ShoppingCart,
+  Tag,
+  TShirt,
+  Airplane,
+  GameController,
+  Gift,
+} from '@phosphor-icons/react'
+import type { Icon } from '@phosphor-icons/react'
+
+export const CATEGORY_ICONS: Record<string, Icon> = {
+  'fork-knife': ForkKnife,
+  'shopping-cart': ShoppingCart,
+  car: Car,
+  'film-strip': FilmStrip,
+  repeat: Repeat,
+  lightning: Lightning,
+  heartbeat: Heartbeat,
+  't-shirt': TShirt,
+  house: House,
+  tag: Tag,
+  airplane: Airplane,
+  'game-controller': GameController,
+  gift: Gift,
+  'graduation-cap': GraduationCap,
+  'paw-print': PawPrint,
+}

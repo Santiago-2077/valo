@@ -1,9 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router'
 import { AppShell } from './components/AppShell'
+import { ToastProvider } from './components/Toast'
 import { Skeleton } from './components/ui'
 import { useMe } from './lib/auth'
+import { CardDetailPage } from './pages/CardDetailPage'
+import { CardsPage } from './pages/CardsPage'
+import { CategoriesPage } from './pages/CategoriesPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ExpensesPage } from './pages/ExpensesPage'
 import { LoginPage } from './pages/LoginPage'
 import { SettingsPage } from './pages/SettingsPage'
 
@@ -29,6 +34,10 @@ const router = createBrowserRouter([
         element: <AppShell />,
         children: [
           { index: true, element: <DashboardPage /> },
+          { path: 'gastos', element: <ExpensesPage /> },
+          { path: 'tarjetas', element: <CardsPage /> },
+          { path: 'tarjetas/:id', element: <CardDetailPage /> },
+          { path: 'categorias', element: <CategoriesPage /> },
           { path: 'ajustes', element: <SettingsPage /> },
         ],
       },
@@ -44,7 +53,9 @@ const queryClient = new QueryClient({
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <ToastProvider>
+        <RouterProvider router={router} />
+      </ToastProvider>
     </QueryClientProvider>
   )
 }

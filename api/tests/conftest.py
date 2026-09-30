@@ -60,3 +60,27 @@ def _reset_throttle() -> None:
     from app.throttle import login_throttle
 
     login_throttle._failures.clear()
+
+
+@pytest.fixture
+def freeze_today(monkeypatch: pytest.MonkeyPatch):  # type: ignore[no-untyped-def]
+    """Call with a date to pin app.clock.today() everywhere it's imported."""
+    import datetime as dt
+
+    import app.routers.cards
+
+    def _freeze(day: dt.date) -> None:
+        monkeypatch.setattr(app.routers.cards, "today", lambda: day)
+
+    return _freeze
+
+
+CREDIT_CARD = {
+    "name": "Oro",
+    "bank": "BBVA",
+    "last4": "4821",
+    "kind": "credit",
+    "closing_day": 20,
+    "due_day": 10,
+    "credit_limit": "45000",
+}

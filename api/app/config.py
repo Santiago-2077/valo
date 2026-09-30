@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     admin_password: str | None = None
 
     base_currency: str = "MXN"
+    timezone: str = "America/Mexico_City"
 
 
 @lru_cache
