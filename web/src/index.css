@@ -1,0 +1,35 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+
+  /* Single accent: desaturated emerald. Neutrals: stone (warm) everywhere. */
+  --color-accent-50: oklch(0.975 0.02 165);
+  --color-accent-100: oklch(0.94 0.045 165);
+  --color-accent-500: oklch(0.62 0.11 165);
+  --color-accent-600: oklch(0.54 0.1 165);
+  --color-accent-700: oklch(0.46 0.085 165);
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    @apply bg-stone-50 text-stone-900 antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent-500;
+  }
+}
+
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
