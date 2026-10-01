@@ -27,7 +27,8 @@ services:
     build: ./web
     restart: unless-stopped
     ports:
-      - "${VALO_PORT:-8080}:80"
+      # 127.0.0.1 when published through `tailscale serve` (HTTPS); 0.0.0.0 for plain LAN access.
+      - "${VALO_BIND:-127.0.0.1}:${VALO_PORT:-8080}:80"
     depends_on:
       - api
 

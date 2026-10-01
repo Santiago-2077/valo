@@ -1,5 +1,6 @@
 import {
   ArrowCircleDown,
+  CloudSlash,
   CalendarDots,
   CreditCard,
   GearSix,
@@ -13,6 +14,7 @@ import {
 import type { Icon } from '@phosphor-icons/react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { useLogout, useMe } from '../lib/auth'
+import { useOnline } from '../lib/useOnline'
 import { cn } from '../lib/cn'
 import { ExpenseDialogProvider, useExpenseDialog } from './ExpenseDialog'
 import { Logo } from './Logo'
@@ -89,6 +91,7 @@ function Shell() {
   const { data: user } = useMe()
   const logout = useLogout()
   const openExpense = useExpenseDialog()
+  const online = useOnline()
 
   return (
     <div className="min-h-[100dvh] md:grid md:grid-cols-[232px_1fr]">
@@ -145,6 +148,18 @@ function Shell() {
             </IconButton>
           </div>
         </header>
+        {online ? null : (
+          <div
+            role="status"
+            className="flex items-start gap-2 border-b border-border bg-warning-soft px-4 py-2.5 text-sm text-fg md:px-10"
+          >
+            <CloudSlash size={18} aria-hidden className="mt-px shrink-0 text-warning" />
+            <span>
+              <strong className="font-medium">Sin conexión.</strong> Lo que ves puede no estar al
+              día y los cambios se guardan cuando vuelvas a tener red.
+            </span>
+          </div>
+        )}
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-32 md:px-10 md:pt-12 md:pb-16">
           <Outlet />
         </main>

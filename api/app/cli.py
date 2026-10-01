@@ -1,4 +1,6 @@
-"""Usage: python -m app.cli set-password <username>"""
+"""Usage:
+python -m app.cli set-password <username>
+python -m app.cli seed-demo [--force]   fill an empty database with demo data"""
 
 import asyncio
 import getpass
@@ -6,7 +8,9 @@ import sys
 
 from sqlalchemy import select
 
+from app.clock import today
 from app.db import SessionLocal
+from app.demo import is_empty, seed_demo
 from app.models import User
 from app.security import hash_password
 
@@ -23,7 +27,18 @@ async def set_password(username: str, password: str) -> None:
         await session.commit()
 
 
+async def run_seed(force: bool) -> None:
+    async with SessionLocal() as session:
+        if not force and not await is_empty(session):
+            sys.exit("La base ya tiene datos; usá --force si querés agregar la demo igual.")
+        counts = await seed_demo(session, today())
+    print("Demo cargada: " + ", ".join(f"{v} {k}" for k, v in counts.items()))
+
+
 def main() -> None:
+    if len(sys.argv) >= 2 and sys.argv[1] == "seed-demo":
+        asyncio.run(run_seed(force="--force" in sys.argv[2:]))
+        return
     if len(sys.argv) != 3 or sys.argv[1] != "set-password":
         print(__doc__)
         sys.exit(1)

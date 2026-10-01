@@ -1,11 +1,24 @@
 import type { ReactNode } from 'react'
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { Suspense, createContext, lazy, useCallback, useContext, useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import type { Expense, Income, Plan } from '../lib/types'
 import { Dialog } from './Dialog'
-import { ExpenseForm } from './ExpenseForm'
-import { IncomeForm } from './IncomeForm'
-import { Segmented } from './ui'
+import { Segmented, Skeleton } from './ui'
+
+// The forms (zod + react-hook-form) load on first use and are prefetched when idle.
+const loadExpenseForm = () => import('./ExpenseForm')
+const ExpenseForm = lazy(async () => ({ default: (await loadExpenseForm()).ExpenseForm }))
+const IncomeForm = lazy(async () => ({ default: (await import('./IncomeForm')).IncomeForm }))
+
+function FormSkeleton() {
+  return (
+    <div className="grid gap-4">
+      <Skeleton className="h-16" />
+      <Skeleton className="h-11" />
+      <Skeleton className="h-40" />
+    </div>
+  )
+}
 
 type Target = Expense | Plan | Income
 type Mode = 'expense' | 'income'
@@ -62,6 +75,14 @@ export function ExpenseDialogProvider({ children }: { children: ReactNode }) {
   const close = () => setState((s) => ({ ...s, open: false }))
 
   useEffect(() => {
+    // Warm the expense form so the first "N" opens without waiting on the network.
+    const id = window.requestIdleCallback?.(() => void loadExpenseForm())
+    return () => {
+      if (id) window.cancelIdleCallback?.(id)
+    }
+  }, [])
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (
         e.key === 'n' &&
@@ -101,11 +122,13 @@ export function ExpenseDialogProvider({ children }: { children: ReactNode }) {
             />
           </div>
         ) : null}
-        {state.mode === 'income' ? (
-          <IncomeForm key={state.key} income={state.income} onDone={close} />
-        ) : (
-          <ExpenseForm key={state.key} expense={state.expense} plan={state.plan} onDone={close} />
-        )}
+        <Suspense fallback={<FormSkeleton />}>
+          {state.mode === 'income' ? (
+            <IncomeForm key={state.key} income={state.income} onDone={close} />
+          ) : (
+            <ExpenseForm key={state.key} expense={state.expense} plan={state.plan} onDone={close} />
+          )}
+        </Suspense>
       </Dialog>
     </Ctx.Provider>
   )
