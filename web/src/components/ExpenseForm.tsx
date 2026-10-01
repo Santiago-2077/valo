@@ -160,10 +160,10 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
     )
   })
 
-  if (cards.isPending) return <p className="py-8 text-center text-sm text-stone-500">Cargando…</p>
+  if (cards.isPending) return <p className="py-8 text-center text-sm text-muted">Cargando…</p>
   if (selectable.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-stone-600">
+      <p className="py-8 text-center text-sm text-fg-2">
         Primero agregá una tarjeta o efectivo en <strong>Tarjetas</strong>.
       </p>
     )
@@ -172,11 +172,11 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-5">
       <div className="grid gap-2">
-        <label htmlFor="amount" className="text-sm font-medium text-stone-700">
+        <label htmlFor="amount" className="text-sm font-medium text-fg-2">
           {msi ? 'Monto total de la compra' : 'Monto'}
         </label>
         <div className="relative">
-          <span className="num pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-2xl text-stone-400">
+          <span className="num pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-2xl text-muted">
             $
           </span>
           <input
@@ -187,17 +187,17 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
             data-autofocus={expense || plan ? undefined : true}
             aria-invalid={formState.errors.amount ? true : undefined}
             className={cn(
-              'num h-16 w-full rounded-2xl border bg-white pr-16 pl-9 text-3xl font-medium tracking-tight focus:border-stone-400 focus:outline-none',
-              formState.errors.amount ? 'border-red-300' : 'border-stone-200',
+              'num h-16 w-full rounded-2xl border bg-surface pr-16 pl-9 text-3xl font-medium tracking-tight focus:border-primary focus:outline-none',
+              formState.errors.amount ? 'border-negative' : 'border-border',
             )}
             {...register('amount')}
           />
-          <span className="num absolute top-1/2 right-4 -translate-y-1/2 text-sm text-stone-400">
+          <span className="num absolute top-1/2 right-4 -translate-y-1/2 text-sm text-muted">
             MXN
           </span>
         </div>
         {formState.errors.amount ? (
-          <p className="text-sm text-red-700">{formState.errors.amount.message}</p>
+          <p className="text-sm text-negative">{formState.errors.amount.message}</p>
         ) : null}
       </div>
 
@@ -214,7 +214,7 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
         name="card_id"
         render={({ field, fieldState }) => (
           <fieldset className="grid gap-2">
-            <legend className="mb-2 text-sm font-medium text-stone-700">Pagaste con</legend>
+            <legend className="mb-2 text-sm font-medium text-fg-2">Pagaste con</legend>
             <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
               {selectable.map((c) => (
                 <button
@@ -225,27 +225,30 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
                   className={cn(
                     'flex h-10 shrink-0 items-center gap-2 rounded-xl border px-3 text-sm transition-colors',
                     field.value === c.id
-                      ? 'border-stone-900 bg-stone-900 text-stone-50'
-                      : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300',
+                      ? 'border-primary bg-primary-soft text-fg ring-1 ring-primary'
+                      : 'border-border bg-surface text-fg-2 hover:border-border-strong',
                   )}
                 >
-                  <span className="size-2.5 rounded-full" style={{ backgroundColor: c.color }} />
+                  <span
+                    className="size-2.5 shrink-0 rounded-full ring-1 ring-fg/15"
+                    style={{ backgroundColor: c.color }}
+                  />
                   {c.name}
                   {c.last4 ? <span className="num text-xs opacity-60">{c.last4}</span> : null}
                 </button>
               ))}
             </div>
             {fieldState.error ? (
-              <p className="text-sm text-red-700">{fieldState.error.message}</p>
+              <p className="text-sm text-negative">{fieldState.error.message}</p>
             ) : null}
           </fieldset>
         )}
       />
 
       {canMsi || plan ? (
-        <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3">
+        <div className="rounded-2xl border border-border bg-surface px-4 py-3">
           {plan ? (
-            <p className="text-sm font-medium text-stone-700">Compra a meses</p>
+            <p className="text-sm font-medium text-fg-2">Compra a meses</p>
           ) : (
             <Controller
               control={control}
@@ -262,13 +265,13 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
             />
           )}
           {msi ? (
-            <div className="mt-4 grid gap-4 border-t border-stone-100 pt-4">
+            <div className="mt-4 grid gap-4 border-t border-border pt-4">
               <Controller
                 control={control}
                 name="n_months"
                 render={({ field, fieldState }) => (
                   <fieldset>
-                    <legend className="mb-2 text-sm text-stone-600">Meses</legend>
+                    <legend className="mb-2 text-sm text-fg-2">Meses</legend>
                     <div className="flex flex-wrap gap-2">
                       {MONTH_OPTIONS.map((n) => (
                         <button
@@ -279,8 +282,8 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
                           className={cn(
                             'num h-9 min-w-11 rounded-lg border px-2.5 text-sm',
                             field.value === n
-                              ? 'border-stone-900 bg-stone-900 text-stone-50'
-                              : 'border-stone-200 text-stone-700 hover:border-stone-300',
+                              ? 'border-primary bg-primary-soft text-fg ring-1 ring-primary'
+                              : 'border-border text-fg-2 hover:border-border-strong',
                           )}
                         >
                           {n}
@@ -292,11 +295,11 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
                         placeholder="Otro"
                         value={MONTH_OPTIONS.includes(field.value) ? '' : field.value || ''}
                         onChange={(e) => field.onChange(Number(e.target.value.replace(/\D/g, '')))}
-                        className="num h-9 w-16 rounded-lg border border-stone-200 px-2 text-sm focus:border-stone-400 focus:outline-none"
+                        className="num h-9 w-16 rounded-lg border border-border px-2 text-sm focus:border-primary focus:outline-none"
                       />
                     </div>
                     {fieldState.error ? (
-                      <p className="mt-2 text-sm text-red-700">{fieldState.error.message}</p>
+                      <p className="mt-2 text-sm text-negative">{fieldState.error.message}</p>
                     ) : null}
                   </fieldset>
                 )}
@@ -315,8 +318,8 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
                 )}
               />
               {amountNum > 0 && nMonths >= 2 ? (
-                <p className="text-sm text-stone-600">
-                  <span className="num font-medium text-stone-900">
+                <p className="text-sm text-fg-2">
+                  <span className="num font-medium text-fg">
                     {nMonths} × {formatMoney(monthlyPreview(amountNum, nMonths))}
                   </span>{' '}
                   al mes
@@ -332,7 +335,7 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
         name="category_id"
         render={({ field }) => (
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-stone-700">Categoría</legend>
+            <legend className="mb-2 text-sm font-medium text-fg-2">Categoría</legend>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {(categories.data ?? []).map((c) => {
                 const active = field.value === c.id
@@ -345,8 +348,8 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
                     className={cn(
                       'flex h-11 items-center gap-2 rounded-xl border px-2 text-left text-sm transition-colors',
                       active
-                        ? 'border-stone-900 bg-white ring-1 ring-stone-900'
-                        : 'border-stone-200 bg-white hover:border-stone-300',
+                        ? 'border-primary bg-primary-soft text-fg ring-1 ring-primary'
+                        : 'border-border bg-surface hover:border-border-strong',
                     )}
                   >
                     <CategoryIcon icon={c.icon} color={c.color} size="sm" />
@@ -371,7 +374,7 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
         control={control}
         name="is_impulse"
         render={({ field }) => (
-          <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3">
+          <div className="rounded-2xl border border-border bg-surface px-4 py-3">
             <Toggle
               checked={field.value}
               onChange={field.onChange}
@@ -385,7 +388,7 @@ export function ExpenseForm({ expense, plan, onDone }: Props) {
       <Field label="Nota (opcional)" autoComplete="off" {...register('note')} />
 
       {error ? (
-        <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-800">
+        <p role="alert" className="rounded-xl bg-negative-soft px-3.5 py-2.5 text-sm text-negative">
           {error.message}
         </p>
       ) : null}

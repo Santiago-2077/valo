@@ -16,10 +16,11 @@ type State = {
   plan?: Plan
   income?: Income
   key: number
+  instant: boolean
 }
 
 /** open() = new expense; open('income') = new income; open(item) = edit it. */
-type Open = (target?: Target | Mode) => void
+type Open = (target?: Target | Mode, opts?: { instant?: boolean }) => void
 const Ctx = createContext<Open>(() => {})
 
 const isPlan = (t: Target): t is Plan => 'n_months' in t
@@ -40,10 +41,15 @@ const TITLES: Record<string, string> = {
 }
 
 export function ExpenseDialogProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<State>({ open: false, mode: 'expense', key: 0 })
+  const [state, setState] = useState<State>({
+    open: false,
+    mode: 'expense',
+    key: 0,
+    instant: false,
+  })
 
-  const open = useCallback<Open>(async (target) => {
-    const next: Omit<State, 'key' | 'open'> = { mode: 'expense' }
+  const open = useCallback<Open>(async (target, opts) => {
+    const next: Omit<State, 'key' | 'open'> = { mode: 'expense', instant: Boolean(opts?.instant) }
     if (target === 'income' || target === 'expense') next.mode = target
     else if (target && isPlan(target)) next.plan = target
     else if (target && isIncome(target)) Object.assign(next, { mode: 'income', income: target })
@@ -66,7 +72,8 @@ export function ExpenseDialogProvider({ children }: { children: ReactNode }) {
         !document.querySelector('dialog[open]')
       ) {
         e.preventDefault()
-        void open()
+        // Keyboard-initiated: open instantly, never animate a shortcut.
+        void open(undefined, { instant: true })
       }
     }
     window.addEventListener('keydown', onKey)
@@ -78,7 +85,12 @@ export function ExpenseDialogProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={open}>
       {children}
-      <Dialog open={state.open} onClose={close} title={TITLES[editing ?? 'new']}>
+      <Dialog
+        open={state.open}
+        onClose={close}
+        title={TITLES[editing ?? 'new']}
+        instant={state.instant}
+      >
         {editing === null ? (
           <div className="mb-5">
             <Segmented

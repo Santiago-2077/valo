@@ -16,8 +16,11 @@ export function CategoryIcon({
     <span
       className={`grid shrink-0 place-items-center ${box}`}
       style={{
-        backgroundColor: color ? `${color}1a` : '#e7e5e4',
-        color: color ?? '#a8a29e',
+        // Mix toward the foreground so user-picked colors stay legible in light and dark.
+        backgroundColor: color
+          ? `color-mix(in oklch, ${color} 14%, transparent)`
+          : 'var(--surface-2)',
+        color: color ? `color-mix(in oklch, ${color} 72%, var(--fg))` : 'var(--muted)',
       }}
     >
       <Component size={size === 'sm' ? 15 : 18} weight="duotone" />

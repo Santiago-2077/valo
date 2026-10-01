@@ -40,11 +40,11 @@ export function RecurringForm(props: Props) {
   const cards = useCards()
   const categories = useCategories()
   if (cards.isPending || categories.isPending) {
-    return <p className="py-8 text-center text-sm text-stone-500">Cargando…</p>
+    return <p className="py-8 text-center text-sm text-muted">Cargando…</p>
   }
   if (!cards.data?.some((c) => c.active)) {
     return (
-      <p className="py-8 text-center text-sm text-stone-600">
+      <p className="py-8 text-center text-sm text-fg-2">
         Primero agregá una tarjeta o efectivo en <strong>Tarjetas</strong>.
       </p>
     )
@@ -169,7 +169,7 @@ function LoadedRecurringForm({ item, onDone }: Props) {
           name="card_id"
           render={({ field, fieldState }) => (
             <fieldset>
-              <legend className="mb-2 text-sm font-medium text-stone-700">Se cobra en</legend>
+              <legend className="mb-2 text-sm font-medium text-fg-2">Se cobra en</legend>
               <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
                 {selectable.map((c) => (
                   <button
@@ -180,17 +180,20 @@ function LoadedRecurringForm({ item, onDone }: Props) {
                     className={cn(
                       'flex h-10 shrink-0 items-center gap-2 rounded-xl border px-3 text-sm transition-colors',
                       field.value === c.id
-                        ? 'border-stone-900 bg-stone-900 text-stone-50'
-                        : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300',
+                        ? 'border-primary bg-primary-soft text-fg ring-1 ring-primary'
+                        : 'border-border bg-surface text-fg-2 hover:border-border-strong',
                     )}
                   >
-                    <span className="size-2.5 rounded-full" style={{ backgroundColor: c.color }} />
+                    <span
+                      className="size-2.5 shrink-0 rounded-full ring-1 ring-fg/15"
+                      style={{ backgroundColor: c.color }}
+                    />
                     {c.name}
                   </button>
                 ))}
               </div>
               {fieldState.error ? (
-                <p className="text-sm text-red-700">{fieldState.error.message}</p>
+                <p className="text-sm text-negative">{fieldState.error.message}</p>
               ) : null}
             </fieldset>
           )}
@@ -203,7 +206,7 @@ function LoadedRecurringForm({ item, onDone }: Props) {
           name="category_id"
           render={({ field }) => (
             <fieldset>
-              <legend className="mb-2 text-sm font-medium text-stone-700">Categoría</legend>
+              <legend className="mb-2 text-sm font-medium text-fg-2">Categoría</legend>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {(categories.data ?? []).map((c) => {
                   const active = field.value === c.id
@@ -214,8 +217,10 @@ function LoadedRecurringForm({ item, onDone }: Props) {
                       aria-pressed={active}
                       onClick={() => field.onChange(active ? null : c.id)}
                       className={cn(
-                        'flex h-11 items-center gap-2 rounded-xl border bg-white px-2 text-left text-sm',
-                        active ? 'border-stone-900 ring-1 ring-stone-900' : 'border-stone-200',
+                        'flex h-11 items-center gap-2 rounded-xl border bg-surface px-2 text-left text-sm',
+                        active
+                          ? 'border-primary bg-primary-soft text-fg ring-1 ring-primary'
+                          : 'border-border',
                       )}
                     >
                       <CategoryIcon icon={c.icon} color={c.color} size="sm" />
@@ -259,7 +264,10 @@ function LoadedRecurringForm({ item, onDone }: Props) {
         )}
 
         {save.error ? (
-          <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-800">
+          <p
+            role="alert"
+            className="rounded-xl bg-negative-soft px-3.5 py-2.5 text-sm text-negative"
+          >
             {save.error.message}
           </p>
         ) : null}

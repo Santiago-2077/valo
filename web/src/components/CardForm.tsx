@@ -102,8 +102,8 @@ export function CardForm({ card, onDone }: { card?: Card; onDone: () => void }) 
         name="kind"
         render={({ field }) => (
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-stone-700">Tipo</legend>
-            <div className="grid grid-cols-3 gap-1 rounded-xl bg-stone-200/60 p-1">
+            <legend className="mb-2 text-sm font-medium text-fg-2">Tipo</legend>
+            <div className="grid grid-cols-3 gap-1 rounded-xl bg-track p-1">
               {(Object.keys(KIND_LABEL) as CardKind[]).map((k) => (
                 <button
                   key={k}
@@ -112,9 +112,7 @@ export function CardForm({ card, onDone }: { card?: Card; onDone: () => void }) 
                   onClick={() => field.onChange(k)}
                   className={cn(
                     'h-9 rounded-lg text-sm transition-colors',
-                    field.value === k
-                      ? 'bg-white font-medium text-stone-900 shadow-sm'
-                      : 'text-stone-600',
+                    field.value === k ? 'bg-surface font-medium text-fg shadow-sm' : 'text-fg-2',
                   )}
                 >
                   {KIND_LABEL[k]}
@@ -183,7 +181,7 @@ export function CardForm({ card, onDone }: { card?: Card; onDone: () => void }) 
         name="color"
         render={({ field }) => (
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-stone-700">Color</legend>
+            <legend className="mb-2 text-sm font-medium text-fg-2">Color</legend>
             <div className="flex flex-wrap gap-2">
               {CARD_COLORS.map((c) => (
                 <button
@@ -193,8 +191,8 @@ export function CardForm({ card, onDone }: { card?: Card; onDone: () => void }) 
                   aria-pressed={field.value === c}
                   onClick={() => field.onChange(c)}
                   className={cn(
-                    'size-8 rounded-full ring-offset-2 ring-offset-stone-50 transition-shadow',
-                    field.value === c && 'ring-2 ring-stone-900',
+                    'size-8 rounded-full ring-offset-2 ring-offset-bg transition-shadow',
+                    field.value === c && 'ring-2 ring-primary',
                   )}
                   style={{ backgroundColor: c }}
                 />
@@ -220,7 +218,7 @@ export function CardForm({ card, onDone }: { card?: Card; onDone: () => void }) 
       ) : null}
 
       {save.error ? (
-        <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-800">
+        <p role="alert" className="rounded-xl bg-negative-soft px-3.5 py-2.5 text-sm text-negative">
           {save.error.message}
         </p>
       ) : null}

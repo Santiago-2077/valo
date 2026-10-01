@@ -1,0 +1,32 @@
+{
+  "brand": "Valo",
+  "tagline": "Que te cuadren las cuentas",
+  "brief": "App self-hosted de finanzas personales para alguien joven en México que quiere entender sus tarjetas, cortes, meses sin intereses y fijos. Debe sentirse clara, honesta y tranquila: lo opuesto a un banco tradicional o a una app de trading.",
+  "adjectives": ["clara", "honesta", "tranquila", "precisa"],
+  "criteria": "Distinta a los círculos y monedas de la categoría, legible a 16 px, funciona en un color, celeste de la familia de Twitter.",
+  "mockups": ["app-icon", "website", "favicon-tab", "readme", "social", "sticker"],
+  "nav": ["Resumen", "Gastos", "Tarjetas"],
+  "brand_color": "#1896E2",
+  "greyscale": false,
+  "designer": "Valo",
+  "round": 2,
+  "concepts": [
+    {
+      "name": "Renglones",
+      "symbol": "/Users/santiagogutierrez/Developer/valo/brand/masters/valo-symbol.svg",
+      "lockup": "/Users/santiagogutierrez/Developer/valo/brand/masters/valo-horizontal-color.svg",
+      "lockup_on_dark": "/Users/santiagogutierrez/Developer/valo/brand/masters/valo-horizontal-dark.svg",
+      "symbol_on_tile": "/Users/santiagogutierrez/Developer/valo/brand/variants/valo-white.svg",
+      "tile_color": "#1896E2",
+      "idea": "Una V cortada en tres renglones: las líneas del estado de cuenta que cierran en un solo punto.",
+      "rationale": [
+        "Cuenta el producto sin dibujarlo: muchos movimientos, un total que cuadra",
+        "Sale del cliché de la categoría (círculos, monedas, flechas, escudos)",
+        "Todas las diagonales a 70°; corte simplificado para 16–32 px",
+        "Wordmark con la o cuadrada: que te cuadren las cuentas"
+      ]
+    }
+  ],
+  "recommendation": "Renglones con el wordmark de la o cuadrada: funciona igual como ícono de app, favicon y logo completo.",
+  "next_steps": ["Usar en la app y en el README del repo", "PWA con el ícono maskable (fase 7)", "Búsqueda de marca registrada si se publica"]
+}

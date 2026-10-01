@@ -62,11 +62,11 @@ export function IncomeForm({ income, onDone }: { income?: Income; onDone: () => 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-5">
       <div className="grid gap-2">
-        <label htmlFor="income-amount" className="text-sm font-medium text-stone-700">
+        <label htmlFor="income-amount" className="text-sm font-medium text-fg-2">
           Monto recibido
         </label>
         <div className="relative">
-          <span className="num pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-2xl text-stone-400">
+          <span className="num pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-2xl text-muted">
             +$
           </span>
           <input
@@ -77,17 +77,17 @@ export function IncomeForm({ income, onDone }: { income?: Income; onDone: () => 
             data-autofocus={income ? undefined : true}
             aria-invalid={formState.errors.amount ? true : undefined}
             className={cn(
-              'num h-16 w-full rounded-2xl border bg-white pr-16 pl-12 text-3xl font-medium tracking-tight focus:border-stone-400 focus:outline-none',
-              formState.errors.amount ? 'border-red-300' : 'border-stone-200',
+              'num h-16 w-full rounded-2xl border bg-surface pr-16 pl-12 text-3xl font-medium tracking-tight focus:border-primary focus:outline-none',
+              formState.errors.amount ? 'border-negative' : 'border-border',
             )}
             {...register('amount')}
           />
-          <span className="num absolute top-1/2 right-4 -translate-y-1/2 text-sm text-stone-400">
+          <span className="num absolute top-1/2 right-4 -translate-y-1/2 text-sm text-muted">
             MXN
           </span>
         </div>
         {formState.errors.amount ? (
-          <p className="text-sm text-red-700">{formState.errors.amount.message}</p>
+          <p className="text-sm text-negative">{formState.errors.amount.message}</p>
         ) : null}
       </div>
       <Field
@@ -102,7 +102,7 @@ export function IncomeForm({ income, onDone }: { income?: Income; onDone: () => 
         name="kind"
         render={({ field }) => (
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-stone-700">Tipo</legend>
+            <legend className="mb-2 text-sm font-medium text-fg-2">Tipo</legend>
             <div className="flex flex-wrap gap-2">
               {(Object.keys(INCOME_KIND_LABEL) as IncomeKind[]).map((k) => (
                 <button
@@ -113,8 +113,8 @@ export function IncomeForm({ income, onDone }: { income?: Income; onDone: () => 
                   className={cn(
                     'h-9 rounded-lg border px-3 text-sm',
                     field.value === k
-                      ? 'border-stone-900 bg-stone-900 text-stone-50'
-                      : 'border-stone-200 bg-white text-stone-700',
+                      ? 'border-primary bg-primary-soft text-fg ring-1 ring-primary'
+                      : 'border-border bg-surface text-fg-2',
                   )}
                 >
                   {INCOME_KIND_LABEL[k]}
@@ -144,7 +144,7 @@ export function IncomeForm({ income, onDone }: { income?: Income; onDone: () => 
       />
       <Field label="Nota (opcional)" autoComplete="off" {...register('note')} />
       {save.error ? (
-        <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-800">
+        <p role="alert" className="rounded-xl bg-negative-soft px-3.5 py-2.5 text-sm text-negative">
           {save.error.message}
         </p>
       ) : null}

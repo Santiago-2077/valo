@@ -55,20 +55,28 @@ export function IncomesPage() {
         />
         <div className="grid grid-cols-2 gap-8 md:text-right">
           <div>
-            <p className="text-[13px] text-stone-500">Entró</p>
+            <p className="text-[13px] text-muted">Entró</p>
             <p className="num text-3xl font-medium tracking-tight">
-              {incomes.data ? formatMoney(incomes.data.sum) : '—'}
+              {incomes.data ? (
+                formatMoney(incomes.data.sum)
+              ) : (
+                <Skeleton className="inline-block h-8 w-36 align-middle" />
+              )}
             </p>
           </div>
           <div>
-            <p className="text-[13px] text-stone-500">{balance >= 0 ? 'Te sobra' : 'Te falta'}</p>
+            <p className="text-[13px] text-muted">{balance >= 0 ? 'Te sobra' : 'Te falta'}</p>
             <p
               className={cn(
                 'num text-3xl font-medium tracking-tight',
-                balance < 0 && 'text-red-700',
+                balance < 0 && 'text-negative',
               )}
             >
-              {insights.data ? formatMoney(Math.abs(balance)) : '—'}
+              {insights.data ? (
+                formatMoney(Math.abs(balance))
+              ) : (
+                <Skeleton className="inline-block h-8 w-36 align-middle" />
+              )}
             </p>
           </div>
         </div>
@@ -80,7 +88,7 @@ export function IncomesPage() {
           <button
             type="button"
             onClick={() => setEditing({})}
-            className="text-sm text-stone-500 hover:text-stone-900"
+            className="text-sm text-muted hover:text-fg"
           >
             + Agregar fijo
           </button>
@@ -91,26 +99,26 @@ export function IncomesPage() {
           <button
             type="button"
             onClick={() => setEditing({})}
-            className="w-full rounded-2xl border border-dashed border-stone-300 px-4 py-5 text-left text-sm text-stone-600 hover:border-stone-400"
+            className="w-full rounded-2xl border border-dashed border-border-strong px-4 py-5 text-left text-sm text-fg-2 hover:border-border-strong"
           >
-            <span className="font-medium text-stone-800">¿Cobrás sueldo?</span> Agregalo como fijo
+            <span className="font-medium text-fg">¿Cobrás sueldo?</span> Agregalo como fijo
             (quincenal, mensual o anual) y se registra solo cada vez que te depositan.
           </button>
         ) : (
-          <ul className="divide-y divide-stone-200 border-y border-stone-200">
+          <ul className="divide-y divide-border border-y border-border">
             {sources.data?.map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
                   onClick={() => setEditing({ item: s })}
                   className={cn(
-                    'grid w-full grid-cols-[1fr_auto] items-center gap-3 px-2 py-3.5 text-left hover:bg-stone-100',
+                    'grid w-full grid-cols-[1fr_auto] items-center gap-3 px-2 py-3.5 text-left hover:bg-surface-2',
                     !s.active && 'opacity-50',
                   )}
                 >
                   <div className="min-w-0">
                     <p className="text-[15px]">{s.name}</p>
-                    <p className="text-[13px] text-stone-500">
+                    <p className="text-[13px] text-muted">
                       {INCOME_KIND_LABEL[s.kind]} · {scheduleLabel(s)}
                       {s.account_id ? ` · ${cardById.get(s.account_id)?.name ?? ''}` : ''}
                     </p>
@@ -120,7 +128,7 @@ export function IncomesPage() {
                       {s.amount_is_estimate ? '~' : ''}
                       {formatMoney(s.amount)}
                     </p>
-                    <p className="text-[13px] whitespace-nowrap text-stone-500">
+                    <p className="text-[13px] whitespace-nowrap text-muted">
                       {s.active
                         ? `${formatDayMonth(s.next_run)} · ${dueLabel(s.next_run)}`
                         : 'Pausado'}
@@ -132,7 +140,7 @@ export function IncomesPage() {
           </ul>
         )}
         {expectedMonthly > 0 ? (
-          <p className="mt-2 px-2 text-[13px] text-stone-500">
+          <p className="mt-2 px-2 text-[13px] text-muted">
             Esperás <span className="num">{formatMoney(expectedMonthly)}</span> al mes de ingresos
             fijos.
           </p>
@@ -156,22 +164,22 @@ export function IncomesPage() {
             }
           />
         ) : (
-          <ul className="divide-y divide-stone-200 border-y border-stone-200">
+          <ul className="divide-y divide-border border-y border-border">
             {incomes.data.items.map((i) => (
               <li key={i.id}>
                 <button
                   type="button"
                   onClick={() => openMovement(i)}
-                  className="grid w-full grid-cols-[1fr_auto] items-center gap-3 px-2 py-3 text-left hover:bg-stone-100"
+                  className="grid w-full grid-cols-[1fr_auto] items-center gap-3 px-2 py-3 text-left hover:bg-surface-2"
                 >
                   <div className="min-w-0">
                     <p className="flex items-center gap-2 text-[15px]">
                       <span className="truncate">{i.description}</span>
                       {i.recurring_income_id ? (
-                        <Repeat size={13} className="shrink-0 text-stone-400" aria-label="Fijo" />
+                        <Repeat size={13} className="shrink-0 text-muted" aria-label="Fijo" />
                       ) : null}
                     </p>
-                    <p className="text-[13px] text-stone-500 first-letter:uppercase">
+                    <p className="text-[13px] text-muted first-letter:uppercase">
                       {formatLongDay(i.date)} · {INCOME_KIND_LABEL[i.kind]}
                     </p>
                   </div>

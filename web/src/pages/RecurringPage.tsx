@@ -33,9 +33,9 @@ function Section({
     <section className="mb-10">
       <header className="mb-2 flex items-baseline justify-between px-2">
         <h2 className="font-medium">{title}</h2>
-        <span className="num text-sm text-stone-500">{formatMoney(monthly)}/mes</span>
+        <span className="num text-sm text-muted">{formatMoney(monthly)}/mes</span>
       </header>
-      <ul className="divide-y divide-stone-200 border-y border-stone-200">
+      <ul className="divide-y divide-border border-y border-border">
         {items.map((r) => {
           const card = cardById.get(r.card_id)
           const category = r.category_id ? categoryById.get(r.category_id) : undefined
@@ -45,7 +45,7 @@ function Section({
                 type="button"
                 onClick={() => onOpen(r)}
                 className={cn(
-                  'grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 px-2 py-3.5 text-left transition-colors hover:bg-stone-100',
+                  'grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 px-2 py-3.5 text-left transition-colors hover:bg-surface-2',
                   !r.active && 'opacity-50',
                 )}
               >
@@ -54,15 +54,15 @@ function Section({
                   <p className="flex items-center gap-2 text-[15px]">
                     <span className="truncate">{r.name}</span>
                     {!r.active ? (
-                      <span className="rounded-md bg-stone-200 px-1.5 py-px text-[11px] text-stone-600">
+                      <span className="rounded-md bg-track px-1.5 py-px text-xs text-fg-2">
                         Pausado
                       </span>
                     ) : null}
                   </p>
-                  <p className="flex items-center gap-1.5 truncate text-[13px] text-stone-500">
+                  <p className="flex items-center gap-1.5 truncate text-[13px] text-muted">
                     {card ? (
                       <span
-                        className="size-2 rounded-full"
+                        className="size-2 shrink-0 rounded-full ring-1 ring-fg/15"
                         style={{ backgroundColor: card.color }}
                       />
                     ) : null}
@@ -74,7 +74,7 @@ function Section({
                     {r.amount_is_estimate ? '~' : ''}
                     {formatMoney(r.amount)}
                   </p>
-                  <p className="text-[13px] whitespace-nowrap text-stone-500">
+                  <p className="text-[13px] whitespace-nowrap text-muted">
                     {r.active
                       ? `${formatDayMonth(r.next_run)} · ${dueLabel(r.next_run)}`
                       : 'sin cobros'}
@@ -134,29 +134,29 @@ export function RecurringPage() {
         <>
           <section className="mb-12 grid gap-8 md:grid-cols-[1.4fr_1fr_1fr]">
             <div>
-              <p className="text-sm text-stone-500">Te cuestan al mes</p>
+              <p className="text-sm text-muted">Te cuestan al mes</p>
               <p className="num mt-1 text-5xl font-medium tracking-tight">{formatMoney(monthly)}</p>
-              <p className="mt-2 text-sm text-stone-500">
+              <p className="mt-2 text-sm text-muted">
                 {active.length} activos · anuales prorrateados
               </p>
             </div>
-            <div className="border-t border-stone-200 pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-8">
-              <p className="text-sm text-stone-500">Al año</p>
+            <div className="border-t border-border pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-8">
+              <p className="text-sm text-muted">Al año</p>
               <p className="num mt-1 text-2xl font-medium">{formatMoney(yearly)}</p>
-              <p className="mt-1 text-[13px] text-stone-500">Lo que suman en 12 meses</p>
+              <p className="mt-1 text-[13px] text-muted">Lo que suman en 12 meses</p>
             </div>
-            <div className="border-t border-stone-200 pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-8">
-              <p className="text-sm text-stone-500">Próximo cobro</p>
+            <div className="border-t border-border pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-8">
+              <p className="text-sm text-muted">Próximo cobro</p>
               {soon ? (
                 <>
                   <p className="mt-1 text-2xl font-medium">{soon.name}</p>
-                  <p className="mt-1 text-[13px] text-stone-500">
+                  <p className="mt-1 text-[13px] text-muted">
                     <span className="num">{formatMoney(soon.amount)}</span> ·{' '}
                     {formatDayMonth(soon.next_run)} ({dueLabel(soon.next_run)})
                   </p>
                 </>
               ) : (
-                <p className="mt-1 text-sm text-stone-500">Nada programado</p>
+                <p className="mt-1 text-sm text-muted">Nada programado</p>
               )}
             </div>
           </section>

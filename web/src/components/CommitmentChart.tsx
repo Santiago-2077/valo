@@ -17,7 +17,7 @@ export function CommitmentChart({ data }: { data: MonthCommitment[] }) {
 
   if (max === 0) {
     return (
-      <p className="py-10 text-center text-sm text-stone-500">
+      <p className="py-10 text-center text-sm text-muted">
         Sin cuotas pendientes en los próximos meses.
       </p>
     )
@@ -51,7 +51,7 @@ export function CommitmentChart({ data }: { data: MonthCommitment[] }) {
               >
                 {labeled && active === null ? (
                   <span
-                    className="num absolute text-[12px] text-stone-600"
+                    className="num absolute text-[12px] text-fg-2"
                     style={{ bottom: height + 6 }}
                   >
                     {formatMoneyShort(d.total)}
@@ -66,20 +66,20 @@ export function CommitmentChart({ data }: { data: MonthCommitment[] }) {
                 />
               </div>
               <span
-                className={`flex h-7 items-end text-[12px] ${i === 0 ? 'font-medium text-stone-900' : 'text-stone-500'}`}
+                className={`flex h-7 items-end text-[12px] ${i === 0 ? 'font-medium text-fg' : 'text-muted'}`}
               >
                 {monthShort.format(date).replace('.', '')}
               </span>
               {active === i ? (
                 <span
                   role="tooltip"
-                  className="pointer-events-none absolute bottom-full z-10 mb-1 rounded-lg bg-stone-900 px-2.5 py-1.5 text-left whitespace-nowrap text-stone-50 shadow-lg"
+                  className="pointer-events-none absolute bottom-full z-10 mb-1 rounded-lg bg-inverse px-2.5 py-1.5 text-left whitespace-nowrap text-on-inverse shadow-lg"
                 >
-                  <span className="block text-[11px] text-stone-400 first-letter:uppercase">
+                  <span className="block text-xs text-on-inverse/75 first-letter:uppercase">
                     {monthLong.format(date)}
                   </span>
                   <span className="num block text-sm">{formatMoney(d.total)}</span>
-                  <span className="block text-[11px] text-stone-400">
+                  <span className="block text-xs text-on-inverse/75">
                     {d.plans} {d.plans === 1 ? 'compra' : 'compras'}
                   </span>
                 </span>
@@ -87,7 +87,7 @@ export function CommitmentChart({ data }: { data: MonthCommitment[] }) {
             </button>
           )
         })}
-        <div className="pointer-events-none absolute inset-x-0 bottom-7 h-px bg-stone-300" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-7 h-px bg-border-strong" />
       </div>
       <table className="sr-only">
         <caption>Cuotas a meses por mes de pago</caption>

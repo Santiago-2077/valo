@@ -34,21 +34,21 @@ export function BudgetList({
             <div>
               <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
                 <span className="truncate">{category?.name ?? 'Categoría'}</span>
-                <span className="num shrink-0 text-stone-500">
-                  <span className="text-stone-900">{formatMoney(r.spent)}</span> /{' '}
+                <span className="num shrink-0 text-muted">
+                  <span className="text-fg">{formatMoney(r.spent)}</span> /{' '}
                   {formatMoney(r.budget ?? 0)}
                 </span>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-stone-200">
+              <div className="h-1.5 overflow-hidden rounded-full bg-track">
                 <div
                   className={cn(
                     'h-full rounded-full',
-                    over ? 'bg-red-600' : near ? 'bg-amber-500' : 'bg-chart-1',
+                    over ? 'bg-mark-negative' : near ? 'bg-mark-warning' : 'bg-chart-1',
                   )}
                   style={{ width: `${Math.min(ratio, 1) * 100}%` }}
                 />
               </div>
-              <p className="mt-1 text-[12px] text-stone-500">
+              <p className="mt-1 text-[12px] text-muted">
                 {over
                   ? `Te pasaste ${formatMoney(-left)} (${Math.round(ratio * 100)}%)`
                   : near

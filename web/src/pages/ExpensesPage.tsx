@@ -69,30 +69,26 @@ export function ExpensesPage() {
     cn(
       'h-9 shrink-0 rounded-full border px-3.5 text-sm transition-colors',
       active
-        ? 'border-stone-900 bg-stone-900 text-stone-50'
-        : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300',
+        ? 'border-primary bg-primary-soft text-fg ring-1 ring-primary'
+        : 'border-border bg-surface text-fg-2 hover:border-border-strong',
     )
 
   return (
     <>
-      <PageHeader
-        title="Gastos"
-        actions={
-          <Button onClick={() => openExpense()} className="hidden md:inline-flex">
-            <Plus size={16} weight="bold" /> Nuevo gasto
-            <kbd className="num ml-1 rounded bg-stone-700 px-1.5 text-[11px] text-stone-300">N</kbd>
-          </Button>
-        }
-      />
+      <PageHeader title="Gastos" />
 
       <section className="mb-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
         <MonthNav month={month} onChange={(m) => setParam('mes', m)} />
         <div className="md:text-right">
-          <p className="text-[13px] text-stone-500">
+          <p className="text-[13px] text-muted">
             {expenses.data ? `${expenses.data.total} gastos` : ' '}
           </p>
           <p className="num text-3xl font-medium tracking-tight">
-            {expenses.data ? formatMoney(expenses.data.sum_mxn) : '—'}
+            {expenses.data ? (
+              formatMoney(expenses.data.sum_mxn)
+            ) : (
+              <Skeleton className="inline-block h-8 w-36 align-middle" />
+            )}
           </p>
         </div>
       </section>
@@ -101,7 +97,7 @@ export function ExpensesPage() {
         <div className="relative">
           <MagnifyingGlass
             size={16}
-            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-stone-400"
+            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-muted"
           />
           <input
             type="search"
@@ -109,7 +105,7 @@ export function ExpensesPage() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar por descripción"
             aria-label="Buscar gastos"
-            className="h-10 w-full rounded-xl border border-stone-200 bg-white pr-3 pl-9 text-sm focus:border-stone-400 focus:outline-none md:max-w-xs"
+            className="h-10 w-full rounded-xl border border-border bg-surface pr-3 pl-9 text-sm focus:border-primary focus:outline-none md:max-w-xs"
           />
         </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
@@ -150,7 +146,7 @@ export function ExpensesPage() {
           {hasFilters ? (
             <button
               type="button"
-              className="h-9 shrink-0 px-2 text-sm text-stone-500 underline-offset-2 hover:underline"
+              className="h-9 shrink-0 px-2 text-sm text-muted underline-offset-2 hover:underline"
               onClick={() => {
                 setQ('')
                 setParams(new URLSearchParams({ mes: month }), { replace: true })
@@ -195,11 +191,11 @@ export function ExpensesPage() {
         >
           {groups.map(([day, items]) => (
             <section key={day}>
-              <header className="mb-1 flex items-baseline justify-between border-b border-stone-200 px-2 pb-2">
-                <h3 className="text-sm font-medium text-stone-600 first-letter:uppercase">
+              <header className="mb-1 flex items-baseline justify-between border-b border-border px-2 pb-2">
+                <h3 className="text-sm font-medium text-fg-2 first-letter:uppercase">
                   {formatLongDay(day)}
                 </h3>
-                <span className="num text-sm text-stone-500">
+                <span className="num text-sm text-muted">
                   {formatMoney(items.reduce((s, e) => s + e.amount_mxn, 0))}
                 </span>
               </header>
@@ -217,7 +213,7 @@ export function ExpensesPage() {
             </section>
           ))}
           {expenses.data && expenses.data.total > PAGE_SIZE ? (
-            <p className="text-center text-sm text-stone-500">
+            <p className="text-center text-sm text-muted">
               Mostrando {PAGE_SIZE} de {expenses.data.total}. Filtrá para ver el resto.
             </p>
           ) : null}

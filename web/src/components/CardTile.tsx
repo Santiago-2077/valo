@@ -12,7 +12,7 @@ export function CardTile({ card }: { card: Card }) {
     <Link
       to={`/tarjetas/${card.id}`}
       className={cn(
-        'group relative flex min-h-44 flex-col justify-between overflow-hidden rounded-3xl p-5 text-stone-50 transition-transform duration-300 ease-out-soft hover:-translate-y-0.5 active:scale-[0.99]',
+        'group relative flex min-h-44 flex-col justify-between overflow-hidden rounded-3xl p-5 ring-1 ring-border text-on-primary transition-transform duration-300 ease-out-soft hover:-translate-y-0.5 active:scale-[0.99]',
         !card.active && 'opacity-50 grayscale',
       )}
       style={{ backgroundColor: card.color }}
@@ -51,7 +51,10 @@ export function CardTile({ card }: { card: Card }) {
               title="Uso del límite"
             >
               <div
-                className={cn('h-full rounded-full', usage > 0.8 ? 'bg-amber-300' : 'bg-white/80')}
+                className={cn(
+                  'h-full rounded-full',
+                  usage > 0.8 ? 'bg-amber-300' : 'bg-surface/80',
+                )}
                 style={{ width: `${Math.max(usage * 100, 2)}%` }}
               />
             </div>

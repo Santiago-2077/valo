@@ -124,7 +124,7 @@ export function RecurringIncomeForm({
           name="kind"
           render={({ field }) => (
             <fieldset>
-              <legend className="mb-2 text-sm font-medium text-stone-700">Tipo</legend>
+              <legend className="mb-2 text-sm font-medium text-fg-2">Tipo</legend>
               <div className="flex flex-wrap gap-2">
                 {(Object.keys(INCOME_KIND_LABEL) as IncomeKind[]).map((k) => (
                   <button
@@ -135,8 +135,8 @@ export function RecurringIncomeForm({
                     className={cn(
                       'h-9 rounded-lg border px-3 text-sm',
                       field.value === k
-                        ? 'border-stone-900 bg-stone-900 text-stone-50'
-                        : 'border-stone-200 bg-white text-stone-700',
+                        ? 'border-primary bg-primary-soft text-fg ring-1 ring-primary'
+                        : 'border-border bg-surface text-fg-2',
                     )}
                   >
                     {INCOME_KIND_LABEL[k]}
@@ -188,7 +188,10 @@ export function RecurringIncomeForm({
           />
         )}
         {save.error ? (
-          <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-800">
+          <p
+            role="alert"
+            className="rounded-xl bg-negative-soft px-3.5 py-2.5 text-sm text-negative"
+          >
             {save.error.message}
           </p>
         ) : null}

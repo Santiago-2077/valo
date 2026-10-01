@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router'
 import { BudgetList } from '../components/BudgetList'
 import { useExpenseDialog } from '../components/ExpenseDialog'
-import { Button, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui'
+import { Button, CardSwatch, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui'
 import { cn } from '../lib/cn'
 import { dueLabel, formatCycle, formatDayMonth, formatMoney, todayISO } from '../lib/format'
 import { useCards, useCategories, useMonthInsights } from '../lib/queries'
@@ -38,11 +38,11 @@ function Stat({
 }) {
   return (
     <div>
-      <p className="text-sm text-stone-500">{label}</p>
-      <p className={cn('num mt-1 text-2xl font-medium', tone === 'bad' && 'text-red-700')}>
+      <p className="text-sm text-muted">{label}</p>
+      <p className={cn('num mt-1 text-2xl font-medium', tone === 'bad' && 'text-negative')}>
         {value}
       </p>
-      {hint ? <p className="mt-1 text-[13px] text-stone-500">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-[13px] text-muted">{hint}</p> : null}
     </div>
   )
 }
@@ -103,34 +103,34 @@ export function DashboardPage() {
 
       <section className="mb-12 grid gap-10 md:grid-cols-[1.3fr_1fr]">
         <div>
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-muted">
             {m && m.balance < 0 ? 'Gastaste más de lo que entró' : 'Te sobra este mes'}
           </p>
           <p
             className={cn(
               'num mt-1 text-5xl font-medium tracking-tight',
-              m && m.balance < 0 && 'text-red-700',
+              m && m.balance < 0 && 'text-negative',
             )}
           >
             {formatMoney(Math.abs(m?.balance ?? 0))}
           </p>
-          <p className="mt-2 text-sm text-stone-500">
-            Entró <span className="num text-stone-800">{formatMoney(m?.income ?? 0)}</span> · salió{' '}
-            <span className="num text-stone-800">{formatMoney(m?.expenses ?? 0)}</span>
+          <p className="mt-2 text-sm text-muted">
+            Entró <span className="num text-fg">{formatMoney(m?.income ?? 0)}</span> · salió{' '}
+            <span className="num text-fg">{formatMoney(m?.expenses ?? 0)}</span>
           </p>
           {m && m.income === 0 ? (
             <Link
               to="/ingresos"
-              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-stone-900 underline-offset-2 hover:underline"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-fg underline-offset-2 hover:underline"
             >
               Cargá tus ingresos para ver cuánto te sobra <ArrowRight size={14} />
             </Link>
           ) : null}
         </div>
-        <div className="border-t border-stone-200 pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-10">
-          <p className="text-sm text-stone-500">Por pagar ahora</p>
+        <div className="border-t border-border pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-10">
+          <p className="text-sm text-muted">Por pagar ahora</p>
           <p className="num mt-1 text-4xl font-medium tracking-tight">{formatMoney(toPayNow)}</p>
-          <p className="mt-2 text-sm text-stone-500">
+          <p className="mt-2 text-sm text-muted">
             {nextDue
               ? `${nextDue.card.name} vence ${formatDayMonth(nextDue.statement.due_date)} (${dueLabel(nextDue.statement.due_date)})`
               : 'Nada vencido pendiente'}
@@ -140,7 +140,7 @@ export function DashboardPage() {
         </div>
       </section>
 
-      <section className="mb-12 grid grid-cols-2 gap-x-6 gap-y-8 border-y border-stone-200 py-8 md:grid-cols-4">
+      <section className="mb-12 grid grid-cols-2 gap-x-6 gap-y-8 border-y border-border py-8 md:grid-cols-4">
         <Stat
           label="Impulsivo"
           value={formatMoney(m?.impulse ?? 0)}
@@ -163,7 +163,9 @@ export function DashboardPage() {
         />
         <Stat
           label="Vs. mes pasado"
-          value={change === null ? '—' : `${change > 0 ? '+' : ''}${Math.round(change * 100)}%`}
+          value={
+            change === null ? 'Sin datos' : `${change > 0 ? '+' : ''}${Math.round(change * 100)}%`
+          }
           hint={m ? `Mes pasado: ${formatMoney(m.previous_expenses)}` : undefined}
         />
       </section>
@@ -172,14 +174,14 @@ export function DashboardPage() {
         <section>
           <header className="mb-4 flex items-baseline justify-between">
             <h2 className="font-medium">Presupuestos</h2>
-            <Link to="/categorias" className="text-sm text-stone-500 hover:text-stone-900">
+            <Link to="/categorias" className="text-sm text-muted hover:text-fg">
               {hasBudgets ? 'Ver todos' : 'Definir topes'}
             </Link>
           </header>
           {hasBudgets && m ? (
             <BudgetList rows={m.categories} categories={categoryById} limit={5} />
           ) : (
-            <p className="text-sm text-stone-500">
+            <p className="text-sm text-muted">
               Ponele un tope mensual a las categorías donde más se te va (comida, salidas) y acá ves
               cuánto te queda.
             </p>
@@ -189,39 +191,34 @@ export function DashboardPage() {
         <section>
           <header className="mb-3 flex items-baseline justify-between">
             <h2 className="font-medium">Próximos pagos</h2>
-            <Link to="/tarjetas" className="text-sm text-stone-500 hover:text-stone-900">
+            <Link to="/tarjetas" className="text-sm text-muted hover:text-fg">
               Ver tarjetas
             </Link>
           </header>
           {payments.length === 0 ? (
-            <p className="text-sm text-stone-500">No tenés tarjetas de crédito activas.</p>
+            <p className="text-sm text-muted">No tenés tarjetas de crédito activas.</p>
           ) : (
-            <ul className="divide-y divide-stone-200 border-y border-stone-200">
+            <ul className="divide-y divide-border border-y border-border">
               {payments.map(({ card, statement: st, closed }) => (
                 <li key={`${card.id}-${st.cycle}`}>
                   <Link
                     to={`/tarjetas/${card.id}?corte=${st.cycle}`}
-                    className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-2 py-3.5 transition-colors hover:bg-stone-100"
+                    className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-2 py-3.5 transition-colors hover:bg-surface-2"
                   >
-                    <span
-                      className="h-8 w-1.5 rounded-full"
-                      style={{ backgroundColor: card.color }}
-                    />
+                    <CardSwatch color={card.color} />
                     <div className="min-w-0">
                       <p className="flex items-center gap-2 truncate text-[15px]">
                         {card.name}
                         <span
                           className={cn(
-                            'rounded-full px-2 py-0.5 text-[11px] font-medium',
-                            closed
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-stone-200/70 text-stone-600',
+                            'rounded-full px-2 py-0.5 text-xs font-medium',
+                            closed ? 'bg-warning-soft text-warning' : 'bg-track text-fg-2',
                           )}
                         >
                           {closed ? 'Por pagar' : 'Acumulando'}
                         </span>
                       </p>
-                      <p className="text-[13px] text-stone-500">
+                      <p className="text-[13px] text-muted">
                         Paga {formatDayMonth(st.due_date)} ({dueLabel(st.due_date)})
                         {closed && st.paid > 0 ? ` · pagaste ${formatMoney(st.paid)}` : ''}
                       </p>

@@ -70,7 +70,7 @@ function CategoryForm({ category, onDone }: { category?: Category; onDone: () =>
         name="icon"
         render={({ field }) => (
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-stone-700">Ícono</legend>
+            <legend className="mb-2 text-sm font-medium text-fg-2">Ícono</legend>
             <div className="flex flex-wrap gap-2">
               {Object.entries(CATEGORY_ICONS).map(([key, Icon]) => (
                 <button
@@ -80,10 +80,10 @@ function CategoryForm({ category, onDone }: { category?: Category; onDone: () =>
                   aria-pressed={field.value === key}
                   onClick={() => field.onChange(key)}
                   className={cn(
-                    'grid size-10 place-items-center rounded-xl border bg-white',
+                    'grid size-10 place-items-center rounded-xl border bg-surface',
                     field.value === key
-                      ? 'border-stone-900 ring-1 ring-stone-900'
-                      : 'border-stone-200',
+                      ? 'border-primary bg-primary-soft text-fg ring-1 ring-primary'
+                      : 'border-border',
                   )}
                 >
                   <Icon size={18} />
@@ -98,7 +98,7 @@ function CategoryForm({ category, onDone }: { category?: Category; onDone: () =>
         name="color"
         render={({ field }) => (
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-stone-700">Color</legend>
+            <legend className="mb-2 text-sm font-medium text-fg-2">Color</legend>
             <div className="flex flex-wrap gap-2">
               {COLORS.map((c) => (
                 <button
@@ -108,8 +108,8 @@ function CategoryForm({ category, onDone }: { category?: Category; onDone: () =>
                   aria-pressed={field.value === c}
                   onClick={() => field.onChange(c)}
                   className={cn(
-                    'size-8 rounded-full ring-offset-2 ring-offset-stone-50',
-                    field.value === c && 'ring-2 ring-stone-900',
+                    'size-8 rounded-full ring-offset-2 ring-offset-bg',
+                    field.value === c && 'ring-2 ring-primary',
                   )}
                   style={{ backgroundColor: c }}
                 />
@@ -127,7 +127,7 @@ function CategoryForm({ category, onDone }: { category?: Category; onDone: () =>
         {...register('monthly_budget')}
       />
       {save.error ? (
-        <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-800">
+        <p role="alert" className="rounded-xl bg-negative-soft px-3.5 py-2.5 text-sm text-negative">
           {save.error.message}
         </p>
       ) : null}
@@ -192,7 +192,7 @@ export function CategoriesPage() {
             <section className="mb-10">
               <h2 className="mb-4 font-medium">
                 Este mes{' '}
-                <span className="num text-sm font-normal text-stone-500">
+                <span className="num text-sm font-normal text-muted">
                   · {formatMoney(insights.data.budget_spent)} de{' '}
                   {formatMoney(insights.data.budget_total)} presupuestados
                 </span>
@@ -200,17 +200,17 @@ export function CategoriesPage() {
               <BudgetList rows={insights.data.categories} categories={categoryById} />
             </section>
           ) : null}
-          <ul className="divide-y divide-stone-200 border-y border-stone-200">
+          <ul className="divide-y divide-border border-y border-border">
             {categories.data.map((c) => (
               <li key={c.id}>
                 <button
                   type="button"
                   onClick={() => setEditing({ category: c })}
-                  className="flex w-full items-center gap-3 px-2 py-3 text-left transition-colors hover:bg-stone-100"
+                  className="flex w-full items-center gap-3 px-2 py-3 text-left transition-colors hover:bg-surface-2"
                 >
                   <CategoryIcon icon={c.icon} color={c.color} />
                   <span className="flex-1 text-[15px]">{c.name}</span>
-                  <span className="num text-sm text-stone-500">
+                  <span className="num text-sm text-muted">
                     {c.monthly_budget ? `${formatMoney(c.monthly_budget)} / mes` : 'Sin tope'}
                   </span>
                 </button>

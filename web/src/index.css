@@ -2,32 +2,152 @@
 @import '@fontsource-variable/geist';
 @import '@fontsource-variable/geist-mono';
 
+/* Theme is class-driven: index.html resolves system/light/dark before first paint. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
+/*
+ * Semantic tokens. Source of truth: design-system/valo/MASTER.md.
+ * Text pairs verified >= 4.5:1 on bg and surface in both modes; data marks >= 3:1.
+ * Neutrals are slate, tinted toward the brand blue (hue ~250); no pure white or black.
+ */
+:root {
+  color-scheme: light;
+  --bg: oklch(0.984 0.003 248);
+  --surface: oklch(0.997 0.002 248);
+  --surface-2: oklch(0.968 0.007 248);
+  --track: oklch(0.929 0.013 255);
+  --border: oklch(0.929 0.013 255);
+  --border-strong: oklch(0.869 0.02 253);
+
+  --fg: oklch(0.208 0.04 266);
+  --fg-2: oklch(0.446 0.037 257);
+  --muted: oklch(0.554 0.041 257);
+
+  /* Baby blue (Twitter #1DA1F2 family). #0978BD keeps white text at >= 4.5:1. */
+  --primary: oklch(0.554 0.138 245.3);
+  --primary-hover: oklch(0.494 0.124 245.9);
+  --primary-soft: oklch(0.956 0.02 233.8);
+  --on-primary: oklch(0.995 0.002 245);
+
+  --positive: oklch(0.527 0.137 150);
+  --positive-soft: oklch(0.962 0.043 157);
+  --negative: oklch(0.505 0.19 27.5);
+  --negative-soft: oklch(0.936 0.031 18);
+  --warning: oklch(0.555 0.146 49);
+  --warning-soft: oklch(0.962 0.058 96);
+
+  --chart-1: oklch(0.626 0.147 243.9);
+  --mark-positive: oklch(0.627 0.17 149);
+  --mark-warning: oklch(0.666 0.157 58);
+  --mark-negative: oklch(0.577 0.215 27);
+
+  --inverse: oklch(0.208 0.04 266);
+  --on-inverse: oklch(0.968 0.007 248);
+  --logo: #1896e2; /* logo blue: 3.1:1 on bg, 3.2:1 with white on top */
+  --brand-panel: oklch(0.682 0.158 243.4);
+  --on-brand-panel: oklch(0.188 0.013 248.5);
+  --scrim: oklch(0.18 0.032 267 / 0.45);
+  --shadow: oklch(0.208 0.04 266 / 0.08);
+}
+
+:root.dark {
+  color-scheme: dark;
+  --bg: oklch(0.18 0.032 267);
+  --surface: oklch(0.22 0.042 265);
+  --surface-2: oklch(0.247 0.044 266);
+  --track: oklch(0.311 0.05 265);
+  --border: oklch(0.311 0.05 265);
+  --border-strong: oklch(0.375 0.05 263);
+
+  --fg: oklch(0.929 0.013 255);
+  --fg-2: oklch(0.753 0.03 256.5);
+  --muted: oklch(0.673 0.033 259);
+
+  /* Pure Twitter blue #1DA1F2 reads at 6.7:1 on the dark background. */
+  --primary: oklch(0.682 0.158 243.4);
+  --primary-hover: oklch(0.741 0.133 238.5);
+  --primary-soft: oklch(0.281 0.051 241.2);
+  --on-primary: oklch(0.18 0.032 267);
+
+  --positive: oklch(0.8 0.182 152);
+  --positive-soft: oklch(0.28 0.049 157);
+  --negative: oklch(0.711 0.166 22);
+  --negative-soft: oklch(0.255 0.06 19);
+  --warning: oklch(0.837 0.164 84);
+  --warning-soft: oklch(0.284 0.048 81);
+
+  --chart-1: oklch(0.648 0.152 243.7);
+  --mark-positive: oklch(0.627 0.17 149);
+  --mark-warning: oklch(0.666 0.157 58);
+  --mark-negative: oklch(0.637 0.208 25);
+
+  --inverse: oklch(0.929 0.013 255);
+  --on-inverse: oklch(0.18 0.032 267);
+  --logo: #1da1f2;
+  --brand-panel: oklch(0.316 0.065 242.4);
+  --on-brand-panel: oklch(0.929 0.013 255);
+  --scrim: oklch(0.08 0.02 267 / 0.6);
+  --shadow: oklch(0 0 0 / 0.35);
+}
+
+@theme inline {
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
-  /* Single accent: desaturated emerald. Neutrals: stone (warm) everywhere. */
-  --color-accent-50: oklch(0.975 0.02 165);
-  --color-accent-100: oklch(0.94 0.045 165);
-  --color-accent-500: oklch(0.62 0.11 165);
-  --color-accent-600: oklch(0.54 0.1 165);
-  --color-accent-700: oklch(0.46 0.085 165);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-track: var(--track);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary: var(--on-primary);
+  --color-positive: var(--positive);
+  --color-positive-soft: var(--positive-soft);
+  --color-negative: var(--negative);
+  --color-negative-soft: var(--negative-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-chart-1: var(--chart-1);
+  --color-mark-positive: var(--mark-positive);
+  --color-mark-warning: var(--mark-warning);
+  --color-mark-negative: var(--mark-negative);
+  --color-brand-panel: var(--brand-panel);
+  --color-on-brand-panel: var(--on-brand-panel);
+  --color-inverse: var(--inverse);
+  --color-on-inverse: var(--on-inverse);
+  --color-scrim: var(--scrim);
+  --color-shadow: var(--shadow);
 
-  /* Data marks: validated for chroma + 3:1 contrast on stone-50 (dataviz validator). */
-  --color-chart-1: #1a9270;
-
-  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1); /* ease-out-quint */
 }
 
 @layer base {
   html {
-    @apply bg-stone-50 text-stone-900 antialiased;
+    @apply bg-bg text-fg antialiased;
     font-feature-settings: 'ss01', 'cv11';
   }
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-accent-500;
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  /* Tailwind v4 resets buttons to cursor: default; everything clickable gets the pointer. */
+  button:not(:disabled),
+  [role='button'],
+  [role='switch'],
+  a[href],
+  select,
+  summary,
+  label[for],
+  input[type='date'] {
+    cursor: pointer;
+  }
+  :disabled {
+    cursor: not-allowed;
   }
 }
 
@@ -37,17 +157,19 @@
   letter-spacing: -0.01em;
 }
 
-@keyframes sheet-in {
+/* Tiny directional nudge when stepping through months/cycles: content arrives from
+   the side you moved toward. Used tens of times a day, so it's short and small. */
+@keyframes nudge-from-right {
   from {
-    opacity: 0;
-    transform: translateY(24px);
+    opacity: 0.4;
+    transform: translateX(8px);
   }
 }
 
-@keyframes toast-in {
+@keyframes nudge-from-left {
   from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.98);
+    opacity: 0.4;
+    transform: translateX(-8px);
   }
 }
 

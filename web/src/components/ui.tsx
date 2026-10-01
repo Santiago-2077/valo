@@ -26,13 +26,12 @@ export function Button({
       disabled={disabled || loading}
       className={cn(
         'inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium',
-        'transition-[transform,background-color,opacity] duration-200 ease-out-soft',
+        'transition-[scale,background-color,opacity] duration-150 ease-out',
         'active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50',
-        variant === 'primary' && 'bg-stone-900 text-stone-50 hover:bg-stone-800',
-        variant === 'secondary' &&
-          'border border-stone-200 bg-white text-stone-800 hover:bg-stone-100',
-        variant === 'ghost' && 'text-stone-600 hover:bg-stone-100 hover:text-stone-900',
-        variant === 'danger' && 'bg-red-700 text-white hover:bg-red-800',
+        variant === 'primary' && 'bg-primary text-on-primary hover:bg-primary-hover',
+        variant === 'secondary' && 'border border-border bg-surface text-fg hover:bg-surface-2',
+        variant === 'ghost' && 'text-fg-2 hover:bg-surface-2 hover:text-fg',
+        variant === 'danger' && 'bg-negative text-on-primary hover:bg-negative/90',
         className,
       )}
       {...props}
@@ -57,7 +56,7 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
   const inputId = id ?? autoId
   return (
     <div className="grid gap-2">
-      <label htmlFor={inputId} className="text-sm font-medium text-stone-700">
+      <label htmlFor={inputId} className="text-sm font-medium text-fg-2">
         {label}
       </label>
       <input
@@ -66,27 +65,27 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${inputId}-error` : undefined}
         className={cn(
-          'h-11 rounded-xl border bg-white px-3.5 text-[15px] text-stone-900 shadow-[inset_0_1px_2px_rgb(28_25_23/0.04)]',
-          'placeholder:text-stone-400 transition-colors',
-          'focus:border-stone-400 focus:outline-none',
-          error ? 'border-red-300' : 'border-stone-200',
+          'h-11 rounded-xl border bg-surface px-3.5 text-[15px] text-fg shadow-[inset_0_1px_2px_var(--shadow)]',
+          'placeholder:text-muted transition-colors',
+          'focus:border-primary focus:outline-none',
+          error ? 'border-negative' : 'border-border',
           className,
         )}
         {...props}
       />
       {error ? (
-        <p id={`${inputId}-error`} className="text-sm text-red-700">
+        <p id={`${inputId}-error`} className="text-sm text-negative">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-sm text-stone-500">{hint}</p>
+        <p className="text-sm text-muted">{hint}</p>
       ) : null}
     </div>
   )
 })
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded-lg bg-stone-200/70', className)} />
+  return <div className={cn('animate-pulse rounded-lg bg-track', className)} />
 }
 
 export function PageHeader({
@@ -101,8 +100,8 @@ export function PageHeader({
   return (
     <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-stone-900">{title}</h1>
-        {description ? <p className="mt-1 text-sm text-stone-500">{description}</p> : null}
+        <h1 className="text-2xl font-semibold tracking-tight text-fg">{title}</h1>
+        {description ? <p className="mt-1 text-sm text-muted">{description}</p> : null}
       </div>
       {actions}
     </header>
@@ -119,7 +118,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   const selectId = id ?? autoId
   return (
     <div className="grid gap-2">
-      <label htmlFor={selectId} className="text-sm font-medium text-stone-700">
+      <label htmlFor={selectId} className="text-sm font-medium text-fg-2">
         {label}
       </label>
       <div className="relative">
@@ -128,9 +127,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
           id={selectId}
           aria-invalid={error ? true : undefined}
           className={cn(
-            'h-11 w-full appearance-none rounded-xl border bg-white pr-9 pl-3.5 text-[15px] text-stone-900',
-            'focus:border-stone-400 focus:outline-none',
-            error ? 'border-red-300' : 'border-stone-200',
+            'h-11 w-full appearance-none rounded-xl border bg-surface pr-9 pl-3.5 text-[15px] text-fg',
+            'focus:border-primary focus:outline-none',
+            error ? 'border-negative' : 'border-border',
             className,
           )}
           {...props}
@@ -139,10 +138,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
         </select>
         <CaretDown
           size={14}
-          className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-stone-400"
+          className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-muted"
         />
       </div>
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="text-sm text-negative">{error}</p> : null}
     </div>
   )
 })
@@ -164,10 +163,10 @@ export function Toggle({
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
-        <label htmlFor={id} className="text-sm font-medium text-stone-700">
+        <label htmlFor={id} className="text-sm font-medium text-fg-2">
           {label}
         </label>
-        {description ? <p className="text-[13px] text-stone-500">{description}</p> : null}
+        {description ? <p className="text-[13px] text-muted">{description}</p> : null}
       </div>
       <button
         id={id}
@@ -177,12 +176,12 @@ export function Toggle({
         onClick={() => onChange(!checked)}
         className={cn(
           'relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200',
-          checked ? (tone === 'warning' ? 'bg-amber-600' : 'bg-stone-900') : 'bg-stone-300',
+          checked ? (tone === 'warning' ? 'bg-mark-warning' : 'bg-primary') : 'bg-border-strong',
         )}
       >
         <span
           className={cn(
-            'absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow-sm transition-transform duration-200 ease-out-soft',
+            'absolute top-0.5 left-0.5 size-6 rounded-full bg-surface shadow-sm transition-transform duration-200 ease-out-soft',
             checked && 'translate-x-5',
           )}
         />
@@ -201,9 +200,9 @@ export function EmptyState({
   action?: ReactNode
 }) {
   return (
-    <div className="rounded-3xl border border-dashed border-stone-300 px-6 py-14 text-center">
-      <p className="font-medium text-stone-800">{title}</p>
-      <p className="mx-auto mt-1 max-w-[44ch] text-sm text-stone-500">{description}</p>
+    <div className="rounded-3xl border border-dashed border-border-strong px-6 py-14 text-center">
+      <p className="font-medium text-fg">{title}</p>
+      <p className="mx-auto mt-1 max-w-[44ch] text-sm text-muted">{description}</p>
       {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
     </div>
   )
@@ -211,7 +210,7 @@ export function EmptyState({
 
 export function ErrorState({ error, onRetry }: { error: Error; onRetry?: () => void }) {
   return (
-    <div role="alert" className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">
+    <div role="alert" className="rounded-2xl bg-negative-soft px-4 py-3 text-sm text-negative">
       No se pudo cargar: {error.message}
       {onRetry ? (
         <button type="button" onClick={onRetry} className="ml-2 font-medium underline">
@@ -236,9 +235,9 @@ export function Segmented<T extends string>({
   const keys = Object.keys(options) as T[]
   return (
     <fieldset>
-      <legend className="mb-2 text-sm font-medium text-stone-700">{label}</legend>
+      <legend className="mb-2 text-sm font-medium text-fg-2">{label}</legend>
       <div
-        className="grid gap-1 rounded-xl bg-stone-200/60 p-1"
+        className="grid gap-1 rounded-xl bg-track p-1"
         style={{ gridTemplateColumns: `repeat(${keys.length}, minmax(0, 1fr))` }}
       >
         {keys.map((k) => (
@@ -249,7 +248,7 @@ export function Segmented<T extends string>({
             onClick={() => onChange(k)}
             className={cn(
               'h-9 rounded-lg text-sm transition-colors',
-              value === k ? 'bg-white font-medium text-stone-900 shadow-sm' : 'text-stone-600',
+              value === k ? 'bg-surface font-medium text-fg shadow-sm' : 'text-fg-2',
             )}
           >
             {options[k]}
@@ -257,5 +256,37 @@ export function Segmented<T extends string>({
         ))}
       </div>
     </fieldset>
+  )
+}
+
+type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  'aria-label': string
+  tone?: 'default' | 'danger'
+}
+
+/** Icon-only button with a 44px touch target; the glyph stays small. */
+export function IconButton({ className, tone = 'default', ...props }: IconButtonProps) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        'grid size-11 shrink-0 place-items-center rounded-xl text-muted transition-[scale,background-color,color] duration-150 ease-out',
+        'hover:bg-surface-2 active:scale-95',
+        tone === 'danger' ? 'hover:text-negative' : 'hover:text-fg',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+/** Small card-shaped swatch identifying a payment method by its color. */
+export function CardSwatch({ color, className }: { color: string; className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn('h-5 w-7 shrink-0 rounded-[5px] ring-1 ring-border', className)}
+      style={{ backgroundColor: color }}
+    />
   )
 }

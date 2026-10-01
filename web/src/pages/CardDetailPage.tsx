@@ -6,8 +6,9 @@ import { Dialog } from '../components/Dialog'
 import { useExpenseDialog } from '../components/ExpenseDialog'
 import { ExpenseRow } from '../components/ExpenseRow'
 import { StatementMoney } from '../components/StatementMoney'
+import { useStepAnimation } from '../lib/useStepAnimation'
 import { useToast } from '../components/Toast'
-import { Button, EmptyState, ErrorState, Skeleton } from '../components/ui'
+import { Button, CardSwatch, EmptyState, ErrorState, IconButton, Skeleton } from '../components/ui'
 import { api } from '../lib/api'
 import { cn } from '../lib/cn'
 import {
@@ -22,10 +23,10 @@ import { useCards, useCategories, useDeleteCard, useExpenses, useStatement } fro
 import type { Card, Expense, Plan } from '../lib/types'
 
 const STATUS = {
-  open: { label: 'Abierto', className: 'bg-accent-100 text-accent-700' },
-  closed: { label: 'Cerrado · por pagar', className: 'bg-amber-100 text-amber-800' },
-  past_due_date: { label: 'Fecha de pago pasada', className: 'bg-stone-200 text-stone-600' },
-  settled: { label: 'Pagado', className: 'bg-accent-100 text-accent-700' },
+  open: { label: 'Abierto', className: 'bg-positive-soft text-positive' },
+  closed: { label: 'Cerrado · por pagar', className: 'bg-warning-soft text-warning' },
+  past_due_date: { label: 'Fecha de pago pasada', className: 'bg-track text-fg-2' },
+  settled: { label: 'Pagado', className: 'bg-positive-soft text-positive' },
 } as const
 
 function useCategoryMap() {
@@ -37,6 +38,8 @@ function CreditStatement({ card }: { card: Card }) {
   const [params, setParams] = useSearchParams()
   const cycle = params.get('corte') ?? undefined
   const statement = useStatement(card.id, cycle)
+  // Keyed on the loaded cycle, so the nudge plays when the new statement actually arrives.
+  const animation = useStepAnimation(statement.data?.cycle ?? '')
   const categoryById = useCategoryMap()
   const openExpense = useExpenseDialog()
 
@@ -48,26 +51,18 @@ function CreditStatement({ card }: { card: Card }) {
 
   return (
     <>
-      <section className="mb-8 grid gap-6 border-y border-stone-200 py-6 md:grid-cols-[1.2fr_1fr_1fr]">
+      <section className="mb-8 grid gap-6 border-y border-border py-6 md:grid-cols-[1.2fr_1fr_1fr]">
         <div>
-          <div className="mb-3 flex items-center gap-1">
-            <button
-              type="button"
-              aria-label="Corte anterior"
-              onClick={() => go(st.previous_cycle)}
-              className="-ml-2 rounded-lg p-1.5 text-stone-500 hover:bg-stone-200/60"
-            >
+          <div className="mb-2 -ml-3 flex items-center">
+            <IconButton aria-label="Corte anterior" onClick={() => go(st.previous_cycle)}>
               <CaretLeft size={16} />
-            </button>
-            <h2 className="font-medium first-letter:uppercase">Corte de {formatCycle(st.cycle)}</h2>
-            <button
-              type="button"
-              aria-label="Corte siguiente"
-              onClick={() => go(st.next_cycle)}
-              className="rounded-lg p-1.5 text-stone-500 hover:bg-stone-200/60"
-            >
+            </IconButton>
+            <h2 key={st.cycle} style={{ animation }} className="font-medium first-letter:uppercase">
+              Corte de {formatCycle(st.cycle)}
+            </h2>
+            <IconButton aria-label="Corte siguiente" onClick={() => go(st.next_cycle)}>
               <CaretRight size={16} />
-            </button>
+            </IconButton>
           </div>
           <p
             className={cn(
@@ -88,28 +83,28 @@ function CreditStatement({ card }: { card: Card }) {
         </div>
         <dl className="grid content-start gap-3 text-sm">
           <div>
-            <dt className="text-stone-500">Periodo</dt>
+            <dt className="text-muted">Periodo</dt>
             <dd className="num">
               {formatDayMonth(st.period_start)} – {formatDayMonth(st.closing_date)}
             </dd>
           </div>
           <div>
-            <dt className="text-stone-500">Pagar antes del</dt>
+            <dt className="text-muted">Pagar antes del</dt>
             <dd>
               <span className="num">{formatDayMonth(st.due_date)}</span>
               {st.status !== 'past_due_date' ? (
-                <span className="text-stone-500"> · {dueLabel(st.due_date)}</span>
+                <span className="text-muted"> · {dueLabel(st.due_date)}</span>
               ) : null}
             </dd>
           </div>
         </dl>
         <dl className="grid content-start gap-3 text-sm">
           <div>
-            <dt className="text-stone-500">Impulsivo</dt>
+            <dt className="text-muted">Impulsivo</dt>
             <dd className="num">
               {formatMoney(st.impulse_total)}
               {st.total > 0 ? (
-                <span className="text-stone-500">
+                <span className="text-muted">
                   {' '}
                   · {Math.round((st.impulse_total / st.total) * 100)}%
                 </span>
@@ -117,7 +112,7 @@ function CreditStatement({ card }: { card: Card }) {
             </dd>
           </div>
           <div>
-            <dt className="text-stone-500">Movimientos</dt>
+            <dt className="text-muted">Movimientos</dt>
             <dd className="num">{st.expenses.length}</dd>
           </div>
         </dl>
@@ -164,7 +159,7 @@ function NonCreditActivity({ card }: { card: Card }) {
   if (expenses.isPending) return <Skeleton className="h-64" />
   return (
     <>
-      <section className="mb-8 border-y border-stone-200 py-6">
+      <section className="mb-8 border-y border-border py-6">
         <h2 className="font-medium first-letter:uppercase">{formatCycle(month)}</h2>
         <p className="num mt-2 text-4xl font-medium tracking-tight">
           {formatMoney(expenses.data.sum_mxn)}
@@ -220,16 +215,16 @@ export function CardDetailPage() {
     <>
       <Link
         to="/tarjetas"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-900"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg"
       >
         <ArrowLeft size={14} /> Tarjetas
       </Link>
       <header className="mb-8 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="h-9 w-1.5 rounded-full" style={{ backgroundColor: card.color }} />
+          <CardSwatch color={card.color} className="h-8 w-11 rounded-md" />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{card.name}</h1>
-            <p className="text-sm text-stone-500">
+            <p className="text-sm text-muted">
               {[card.bank, card.last4 && `•• ${card.last4}`].filter(Boolean).join(' · ') ||
                 (card.kind === 'cash' ? 'Efectivo' : 'Débito')}
               {card.kind === 'credit'
@@ -245,11 +240,11 @@ export function CardDetailPage() {
 
       {card.kind === 'credit' ? <CreditStatement card={card} /> : <NonCreditActivity card={card} />}
 
-      <div className="mt-12 border-t border-stone-200 pt-6">
-        {remove.error ? <p className="mb-2 text-sm text-red-700">{remove.error.message}</p> : null}
+      <div className="mt-12 border-t border-border pt-6">
+        {remove.error ? <p className="mb-2 text-sm text-negative">{remove.error.message}</p> : null}
         <button
           type="button"
-          className="text-sm text-stone-500 hover:text-red-700"
+          className="text-sm text-muted hover:text-negative"
           onClick={() => {
             if (window.confirm(`¿Eliminar ${card.name}?`)) {
               remove.mutate(card.id, {

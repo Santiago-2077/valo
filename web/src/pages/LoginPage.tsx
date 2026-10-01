@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Navigate } from 'react-router'
 import { z } from 'zod'
+import { Logo } from '../components/Logo'
 import { Button, Field } from '../components/ui'
 import { useLogin, useMe } from '../lib/auth'
 
@@ -22,18 +23,19 @@ export function LoginPage() {
 
   return (
     <div className="grid min-h-[100dvh] md:grid-cols-[1.1fr_1fr]">
-      <section className="hidden flex-col justify-between bg-stone-900 p-12 text-stone-100 md:flex">
-        <span className="text-[17px] font-semibold tracking-tight">valo</span>
+      <section className="hidden flex-col justify-between bg-brand-panel p-12 text-on-brand-panel md:flex">
+        {/* On the blue panel the symbol takes the panel's text color instead of brand blue. */}
+        <Logo className="h-8 self-start [--logo:var(--on-brand-panel)]" />
         <div className="max-w-md">
           <p className="text-3xl leading-tight font-medium tracking-tight text-balance">
             Sabé qué cae en cada resumen antes de que llegue el corte.
           </p>
-          <p className="mt-4 text-sm leading-relaxed text-stone-400">
+          <p className="mt-4 text-sm leading-relaxed text-on-brand-panel">
             Tarjetas, meses sin intereses, suscripciones y servicios en un solo lugar, corriendo en
             tu propio servidor.
           </p>
         </div>
-        <span className="num text-xs text-stone-500">self-hosted</span>
+        <span className="num text-xs text-on-brand-panel">self-hosted</span>
       </section>
 
       <section className="flex items-center px-6 py-12 md:px-16">
@@ -43,8 +45,9 @@ export function LoginPage() {
           noValidate
         >
           <div>
+            <Logo className="mb-10 block h-7 md:hidden" />
             <h1 className="text-2xl font-semibold tracking-tight">Iniciar sesión</h1>
-            <p className="mt-1 text-sm text-stone-500">Entrá con el usuario de tu instancia.</p>
+            <p className="mt-1 text-sm text-muted">Entrá con el usuario de tu instancia.</p>
           </div>
           <Field
             label="Usuario"
@@ -61,7 +64,10 @@ export function LoginPage() {
             {...register('password')}
           />
           {login.error ? (
-            <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-800">
+            <p
+              role="alert"
+              className="rounded-xl bg-negative-soft px-3.5 py-2.5 text-sm text-negative"
+            >
               {login.error.message}
             </p>
           ) : null}

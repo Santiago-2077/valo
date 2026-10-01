@@ -15,6 +15,8 @@ import { Link, NavLink, Outlet } from 'react-router'
 import { useLogout, useMe } from '../lib/auth'
 import { cn } from '../lib/cn'
 import { ExpenseDialogProvider, useExpenseDialog } from './ExpenseDialog'
+import { Logo } from './Logo'
+import { IconButton } from './ui'
 
 type NavItem = { to: string; label: string; icon: Icon }
 
@@ -28,21 +30,18 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/categorias', label: 'Categorías', icon: Tag },
 ]
 
-function Logo() {
+// Mobile: sections that don't fit the 5-slot tab bar live in the header.
+const HEADER_LINKS: NavItem[] = [
+  { to: '/ingresos', label: 'Ingresos', icon: ArrowCircleDown },
+  { to: '/fijos', label: 'Fijos', icon: Repeat },
+  { to: '/categorias', label: 'Categorías', icon: Tag },
+  { to: '/ajustes', label: 'Ajustes', icon: GearSix },
+]
+
+function Brand() {
   return (
-    <Link to="/" className="flex items-center gap-2.5">
-      <svg viewBox="0 0 32 32" className="size-7" aria-hidden>
-        <rect width="32" height="32" rx="8" fill="#1c1917" />
-        <path
-          d="M9 10l7 13 7-13"
-          fill="none"
-          stroke="#6ee7b7"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="text-[17px] font-semibold tracking-tight">valo</span>
+    <Link to="/" aria-label="Valo, ir al resumen" className="flex items-center text-fg">
+      <Logo className="h-6" />
     </Link>
   )
 }
@@ -56,8 +55,8 @@ function SideLink({ to, label, icon: Icon }: NavItem) {
         cn(
           'flex h-10 items-center gap-3 rounded-xl px-3 text-sm transition-colors',
           isActive
-            ? 'bg-white font-medium text-stone-900 shadow-[0_1px_2px_rgb(28_25_23/0.06)] ring-1 ring-stone-200/80'
-            : 'text-stone-500 hover:text-stone-900',
+            ? 'bg-surface font-medium text-fg shadow-[0_1px_2px_var(--shadow)] ring-1 ring-border'
+            : 'text-muted hover:text-fg',
         )
       }
     >
@@ -73,10 +72,7 @@ function TabLink({ to, label, icon: Icon }: NavItem) {
       to={to}
       end={to === '/'}
       className={({ isActive }) =>
-        cn(
-          'flex flex-col items-center gap-1 py-2.5 text-[11px]',
-          isActive ? 'text-stone-900' : 'text-stone-400',
-        )
+        cn('flex flex-col items-center gap-1 py-2.5 text-xs', isActive ? 'text-fg' : 'text-muted')
       }
     >
       {({ isActive }) => (
@@ -96,63 +92,57 @@ function Shell() {
 
   return (
     <div className="min-h-[100dvh] md:grid md:grid-cols-[232px_1fr]">
-      <aside className="sticky top-0 hidden h-[100dvh] flex-col border-r border-stone-200/80 px-4 py-6 md:flex">
+      <aside className="sticky top-0 hidden h-[100dvh] flex-col border-r border-border px-4 py-6 md:flex">
         <div className="px-2">
-          <Logo />
+          <Brand />
         </div>
         <button
           type="button"
           onClick={() => openExpense()}
-          className="mt-8 flex h-10 items-center justify-between rounded-xl bg-stone-900 px-3 text-sm font-medium text-stone-50 transition-transform hover:bg-stone-800 active:scale-[0.98]"
+          className="mt-8 flex h-10 items-center justify-between rounded-xl bg-primary px-3 text-sm font-medium text-on-primary transition-transform hover:bg-primary-hover active:scale-[0.98]"
         >
           <span className="flex items-center gap-2">
             <Plus size={16} weight="bold" /> Nuevo gasto
           </span>
-          <kbd className="num rounded bg-stone-700 px-1.5 text-[11px] text-stone-300">N</kbd>
+          <kbd className="num rounded bg-on-primary/15 px-1.5 text-xs text-on-primary/80">N</kbd>
         </button>
         <nav className="mt-6 grid gap-1" aria-label="Principal">
           {NAV_ITEMS.map((item) => (
             <SideLink key={item.to} {...item} />
           ))}
         </nav>
-        <div className="mt-auto grid gap-1 border-t border-stone-200/80 pt-4">
+        <div className="mt-auto grid gap-1 border-t border-border pt-4">
           <SideLink to="/ajustes" label="Ajustes" icon={GearSix} />
           <div className="flex items-center justify-between px-3 pt-2">
-            <span className="truncate text-sm text-stone-500">{user?.username}</span>
-            <button
-              type="button"
-              onClick={() => logout.mutate()}
-              className="rounded-lg p-2 text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900"
+            <span className="truncate text-sm text-muted">{user?.username}</span>
+            <IconButton
               aria-label="Cerrar sesión"
+              onClick={() => logout.mutate()}
+              className="-mr-3"
             >
               <SignOut size={18} />
-            </button>
+            </IconButton>
           </div>
         </div>
       </aside>
 
       <div className="flex min-h-[100dvh] min-w-0 flex-col">
-        <header className="flex items-center justify-between border-b border-stone-200/80 px-4 py-3 md:hidden">
-          <Logo />
-          <div className="flex items-center">
-            <Link
-              to="/categorias"
-              className="rounded-lg p-2 text-stone-500"
-              aria-label="Categorías"
-            >
-              <Tag size={20} />
-            </Link>
-            <Link to="/ajustes" className="rounded-lg p-2 text-stone-500" aria-label="Ajustes">
-              <GearSix size={20} />
-            </Link>
-            <button
-              type="button"
-              onClick={() => logout.mutate()}
-              className="rounded-lg p-2 text-stone-500"
-              aria-label="Cerrar sesión"
-            >
+        <header className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden">
+          <Brand />
+          <div className="-mr-3 flex items-center">
+            {HEADER_LINKS.map(({ to, label, icon: Icon }) => (
+              <Link
+                key={to}
+                to={to}
+                aria-label={label}
+                className="grid size-11 place-items-center rounded-xl text-muted hover:bg-surface-2 hover:text-fg"
+              >
+                <Icon size={20} />
+              </Link>
+            ))}
+            <IconButton aria-label="Cerrar sesión" onClick={() => logout.mutate()}>
               <SignOut size={20} />
-            </button>
+            </IconButton>
           </div>
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-32 md:px-10 md:pt-12 md:pb-16">
@@ -160,7 +150,7 @@ function Shell() {
         </main>
         <nav
           aria-label="Principal"
-          className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 items-center border-t border-stone-200/80 bg-stone-50/90 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+          className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 items-center border-t border-border bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
         >
           <TabLink {...NAV_ITEMS[0]} />
           <TabLink {...NAV_ITEMS[1]} />
@@ -169,7 +159,7 @@ function Shell() {
               type="button"
               onClick={() => openExpense()}
               aria-label="Nuevo gasto"
-              className="grid size-12 place-items-center rounded-2xl bg-stone-900 text-stone-50 shadow-[0_8px_20px_-8px_rgb(28_25_23/0.6)] transition-transform active:scale-95"
+              className="grid size-12 place-items-center rounded-2xl bg-primary text-on-primary shadow-[0_8px_20px_-8px_var(--shadow)] transition-transform active:scale-95"
             >
               <Plus size={22} weight="bold" />
             </button>

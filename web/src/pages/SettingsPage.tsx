@@ -1,8 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Button, Field, PageHeader } from '../components/ui'
+import { Button, Field, PageHeader, Segmented } from '../components/ui'
 import { useChangePassword } from '../lib/auth'
+import { type ThemePref, useTheme } from '../lib/theme'
+
+const THEME_LABEL: Record<ThemePref, string> = {
+  system: 'Sistema',
+  light: 'Claro',
+  dark: 'Oscuro',
+}
 
 const schema = z
   .object({
@@ -18,6 +25,7 @@ type FormValues = z.infer<typeof schema>
 
 export function SettingsPage() {
   const change = useChangePassword()
+  const theme = useTheme()
   const { register, handleSubmit, formState, reset } = useForm<FormValues>({
     resolver: zodResolver(schema),
   })
@@ -25,10 +33,26 @@ export function SettingsPage() {
   return (
     <>
       <PageHeader title="Ajustes" />
-      <section className="grid gap-8 border-t border-stone-200 pt-8 md:grid-cols-[1fr_1.4fr]">
+      <section className="mb-10 grid gap-8 border-t border-border pt-8 md:grid-cols-[1fr_1.4fr]">
+        <div>
+          <h2 className="font-medium">Apariencia</h2>
+          <p className="mt-1 text-sm text-muted">
+            “Sistema” sigue el modo claro u oscuro de tu dispositivo.
+          </p>
+        </div>
+        <div className="max-w-md">
+          <Segmented
+            label="Tema"
+            value={theme.pref}
+            onChange={theme.setPref}
+            options={THEME_LABEL}
+          />
+        </div>
+      </section>
+      <section className="grid gap-8 border-t border-border pt-8 md:grid-cols-[1fr_1.4fr]">
         <div>
           <h2 className="font-medium">Contraseña</h2>
-          <p className="mt-1 text-sm text-stone-500">Usá una que no uses en otro lado.</p>
+          <p className="mt-1 text-sm text-muted">Usá una que no uses en otro lado.</p>
         </div>
         <form
           noValidate
@@ -59,12 +83,12 @@ export function SettingsPage() {
             {...register('confirm')}
           />
           {change.error ? (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-sm text-negative">
               {change.error.message}
             </p>
           ) : null}
           {change.isSuccess ? (
-            <p role="status" className="text-sm text-accent-700">
+            <p role="status" className="text-sm text-positive">
               Contraseña actualizada.
             </p>
           ) : null}

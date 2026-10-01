@@ -16,20 +16,23 @@ function PlanRow({ plan, card, onClick }: { plan: Plan; card?: Card; onClick: ()
       <button
         type="button"
         onClick={onClick}
-        className="grid w-full gap-3 px-2 py-4 text-left transition-colors hover:bg-stone-100 md:grid-cols-[1fr_15rem_12.5rem] md:items-center md:gap-8"
+        className="grid w-full gap-3 px-2 py-4 text-left transition-colors hover:bg-surface-2 md:grid-cols-[1fr_15rem_12.5rem] md:items-center md:gap-8"
       >
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-[15px]">
             <span className="truncate">{plan.description}</span>
             {!plan.interest_free ? (
-              <span className="shrink-0 rounded-md bg-amber-100 px-1.5 py-px text-[11px] text-amber-800">
+              <span className="shrink-0 rounded-md bg-warning-soft px-1.5 py-px text-xs text-warning">
                 con intereses
               </span>
             ) : null}
           </p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-stone-500">
+          <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted">
             {card ? (
-              <span className="size-2 rounded-full" style={{ backgroundColor: card.color }} />
+              <span
+                className="size-2 shrink-0 rounded-full ring-1 ring-fg/15"
+                style={{ backgroundColor: card.color }}
+              />
             ) : null}
             {card?.name} · compraste {formatMoney(plan.total)} el{' '}
             {formatDayMonth(plan.purchase_date)}
@@ -37,14 +40,14 @@ function PlanRow({ plan, card, onClick }: { plan: Plan; card?: Card; onClick: ()
         </div>
         <div>
           <div className="mb-1.5 flex justify-between gap-3 text-[13px] whitespace-nowrap">
-            <span className="text-stone-500">
-              <span className="num text-stone-900">{plan.paid_count}</span> de{' '}
+            <span className="text-muted">
+              <span className="num text-fg">{plan.paid_count}</span> de{' '}
               <span className="num">{plan.n_months}</span> pagadas
             </span>
-            <span className="num text-stone-600">{formatMoney(plan.monthly_amount)}/mes</span>
+            <span className="num text-fg-2">{formatMoney(plan.monthly_amount)}/mes</span>
           </div>
           <div
-            className="h-1.5 overflow-hidden rounded-full bg-stone-200"
+            className="h-1.5 overflow-hidden rounded-full bg-track"
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={plan.n_months}
@@ -60,9 +63,9 @@ function PlanRow({ plan, card, onClick }: { plan: Plan; card?: Card; onClick: ()
         <div className="md:text-right">
           <p className="text-[15px]">
             <span className="num font-medium">{formatMoney(plan.remaining_amount)}</span>{' '}
-            <span className="text-[12px] text-stone-400">restante</span>
+            <span className="text-[12px] text-muted">restante</span>
           </p>
-          <p className="text-[13px] whitespace-nowrap text-stone-500">
+          <p className="text-[13px] whitespace-nowrap text-muted">
             {next
               ? `Próxima: ${formatDayMonth(next.due_date)} · ${dueLabel(next.due_date)}`
               : 'Terminada'}
@@ -122,11 +125,11 @@ export function InstallmentsPage() {
         <>
           <section className="mb-12 grid gap-10 md:grid-cols-[1fr_1.4fr]">
             <div>
-              <p className="text-sm text-stone-500">Te falta pagar</p>
+              <p className="text-sm text-muted">Te falta pagar</p>
               <p className="num mt-1 text-5xl font-medium tracking-tight">
                 {formatMoney(remaining)}
               </p>
-              <p className="mt-2 text-sm text-stone-500">
+              <p className="mt-2 text-sm text-muted">
                 {active.length} {active.length === 1 ? 'compra activa' : 'compras activas'}
                 {nextPayment ? (
                   <>
@@ -138,7 +141,7 @@ export function InstallmentsPage() {
               </p>
             </div>
             <div>
-              <h2 className="mb-4 text-sm text-stone-500">Cuotas por mes de pago</h2>
+              <h2 className="mb-4 text-sm text-muted">Cuotas por mes de pago</h2>
               {months ? <CommitmentChart data={months} /> : <Skeleton className="h-48" />}
             </div>
           </section>
@@ -149,14 +152,14 @@ export function InstallmentsPage() {
               <button
                 type="button"
                 onClick={() => setShowFinished((v) => !v)}
-                className="text-sm text-stone-500 hover:text-stone-900"
+                className="text-sm text-muted hover:text-fg"
               >
                 {showFinished ? 'Ocultar terminadas' : 'Mostrar terminadas'}
               </button>
             </header>
             <ul
               className={cn(
-                'divide-y divide-stone-200 border-y border-stone-200',
+                'divide-y divide-border border-y border-border',
                 plans.isFetching && 'opacity-70',
               )}
             >

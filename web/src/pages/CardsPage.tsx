@@ -52,7 +52,7 @@ export function CardsPage() {
           </div>
           {inactive.length ? (
             <section className="mt-10">
-              <h2 className="mb-3 text-sm font-medium text-stone-500">Inactivas</h2>
+              <h2 className="mb-3 text-sm font-medium text-muted">Inactivas</h2>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {inactive.map((c) => (
                   <CardTile key={c.id} card={c} />
